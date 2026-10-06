@@ -14,12 +14,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`h-full antialiased ${sora.variable} ${sourceSans.variable}`}>
-      <head>
+      <body className="min-h-full flex flex-col">
+        {children}
         <Script src="https://unpkg.com/three@0.149.0/build/three.min.js" strategy="beforeInteractive" />
-        <Script src="/support.js" strategy="beforeInteractive" />
         <Script src="/solar-system.js" strategy="beforeInteractive" />
-      </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      </body>
     </html>
   );
 }
