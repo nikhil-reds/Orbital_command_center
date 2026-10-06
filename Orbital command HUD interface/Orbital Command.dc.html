@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
+<style>
+  html, body { margin:0; padding:0; background:#03060d; overflow:hidden; }
+  a { color:#7fe3ff; text-decoration:none; }
+  a:hover { color:#bff2ff; }
+  ::selection { background:rgba(95,216,255,.25); }
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(95,216,255,.2); border-radius:6px; }
+  ::-webkit-scrollbar-thumb:hover { background:rgba(95,216,255,.4); }
+  @keyframes om-spin { to { transform: rotate(360deg); } }
+  @keyframes om-spin-rev { to { transform: rotate(-360deg); } }
+  @keyframes om-blink { 0%,100% { opacity:1; } 50% { opacity:.18; } }
+  @keyframes om-panel-scan { 0% { transform: translateY(-100%); opacity:0; } 8% { opacity:.7; } 60% { opacity:.5; } 100% { transform: translateY(420%); opacity:0; } }
+  @keyframes om-fade-up { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform:none; } }
+  @keyframes om-bracket { 0% { opacity:0; transform: scale(1.18); } 100% { opacity:.85; transform: scale(1); } }
+</style>
+</helmet>
+<div style="position:fixed; inset:0; background:#03060d; color:#cfe6f2; font-family:'Space Grotesk',Helvetica,sans-serif; display:grid; grid-template-rows:56px minmax(0,1fr) 58px; grid-template-columns:minmax(0,1fr); overflow:hidden;">
+
+  <canvas data-om="bg" style="position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none;"></canvas>
+  <div style="position:absolute; inset:0; pointer-events:none; background-image:linear-gradient(rgba(95,216,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(95,216,255,.045) 1px, transparent 1px); background-size:64px 64px; mask-image:radial-gradient(ellipse 70% 60% at 50% 50%, #000 10%, transparent 78%); -webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 50%, #000 10%, transparent 78%);"></div>
+  <div style="position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse 40% 44% at 50% 52%, rgba(50,140,220,.13), transparent 70%), radial-gradient(circle at 8% 88%, rgba(150,110,255,.10), transparent 55%), radial-gradient(circle at 96% 10%, rgba(60,240,210,.07), transparent 50%);"></div>
+
+  <header style="position:relative; z-index:5; display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; padding:0 18px; min-width:0; gap:14px; border-bottom:1px solid rgba(95,216,255,.13); background:linear-gradient(180deg, rgba(6,16,32,.72), rgba(4,10,22,.35)); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);">
+    <div style="display:flex; align-items:center; gap:14px;">
+      <div style="position:relative; width:26px; height:26px; display:grid; place-items:center; flex:none;">
+        <div style="position:absolute; inset:0; border:1px solid rgba(95,216,255,.5); border-radius:50%; animation:om-spin 14s linear infinite; border-top-color:transparent; border-left-color:rgba(95,216,255,.15);"></div>
+        <div style="width:8px; height:8px; border-radius:50%; background:#7fe3ff; box-shadow:0 0 12px 2px rgba(95,216,255,.75);"></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:2px; min-width:0;">
+        <div style="font-size:14px; letter-spacing:.34em; font-weight:500; color:#e8f6ff; white-space:nowrap;">ORBITAL COMMAND</div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.22em; color:rgba(127,227,255,.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">SOL SYSTEM // LIVE · CELESTIAL NAVIGATION</div>
+      </div>
+    </div>
+    <nav style="display:flex; align-items:center; gap:2px; min-width:0; overflow:hidden; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.2em;">
+      <div style="padding:7px 11px; flex:0 1 auto; overflow:hidden; text-overflow:ellipsis; color:#03060d; background:linear-gradient(180deg, rgba(127,227,255,.95), rgba(95,190,240,.8)); border-radius:2px; box-shadow:0 0 18px rgba(95,216,255,.35); white-space:nowrap;">SYSTEM OVERVIEW</div>
+      <div style="width:1px; height:14px; background:rgba(95,216,255,.2);"></div>
+      <div style="padding:7px 11px; flex:0 1 auto; overflow:hidden; text-overflow:ellipsis; color:rgba(207,230,242,.62); border-radius:2px; cursor:pointer; transition:all .4s ease;" style-hover="color:#e8f6ff; background:rgba(95,216,255,.09); box-shadow:inset 0 0 0 1px rgba(95,216,255,.22);">PLANETS</div>
+      <div style="padding:7px 11px; flex:0 1 auto; overflow:hidden; text-overflow:ellipsis; color:rgba(207,230,242,.62); border-radius:2px; cursor:pointer; transition:all .4s ease;" style-hover="color:#e8f6ff; background:rgba(95,216,255,.09); box-shadow:inset 0 0 0 1px rgba(95,216,255,.22);">MISSIONS</div>
+      <div style="padding:7px 11px; flex:0 1 auto; overflow:hidden; text-overflow:ellipsis; color:rgba(207,230,242,.62); border-radius:2px; cursor:pointer; transition:all .4s ease;" style-hover="color:#e8f6ff; background:rgba(95,216,255,.09); box-shadow:inset 0 0 0 1px rgba(95,216,255,.22);">SIGNALS</div>
+      <div style="padding:7px 11px; flex:0 1 auto; overflow:hidden; text-overflow:ellipsis; color:rgba(207,230,242,.62); border-radius:2px; cursor:pointer; transition:all .4s ease;" style-hover="color:#e8f6ff; background:rgba(95,216,255,.09); box-shadow:inset 0 0 0 1px rgba(95,216,255,.22);">ANALYTICS</div>
+    </nav>
+    <div style="display:flex; align-items:center; justify-content:flex-end; gap:14px; min-width:0; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.16em;">
+      <div style="display:flex; align-items:center; gap:7px; color:#8ff5d8; white-space:nowrap;">
+        <span style="width:6px; height:6px; border-radius:50%; background:#4ff0d0; box-shadow:0 0 10px 2px rgba(79,240,208,.7); animation:om-blink 2.4s ease-in-out infinite;"></span>LIVE
+      </div>
+      <div style="width:1px; height:16px; background:rgba(95,216,255,.18);"></div>
+      <div style="color:rgba(207,230,242,.8); white-space:nowrap;">UTC {{ clock }}</div>
+      <div style="width:1px; height:16px; background:rgba(95,216,255,.18);"></div>
+      <div style="display:flex; align-items:center; gap:8px; color:rgba(207,230,242,.55);">
+        LINK
+        <span style="display:flex; align-items:flex-end; gap:2px; height:11px;">
+          <i style="width:2px; height:4px; background:#7fe3ff; display:block;"></i>
+          <i style="width:2px; height:7px; background:#7fe3ff; display:block;"></i>
+          <i style="width:2px; height:10px; background:#7fe3ff; display:block;"></i>
+          <i style="width:2px; height:11px; background:rgba(127,227,255,.25); display:block; animation:om-blink 3s ease-in-out infinite;"></i>
+        </span>
+      </div>
+      <div style="position:relative; width:30px; height:30px; flex:none; border-radius:50%; display:grid; place-items:center; border:1px solid rgba(95,216,255,.3); background:rgba(10,26,48,.6); font-size:9.5px; letter-spacing:.1em; color:#9fe8ff; cursor:pointer; transition:all .4s ease;" style-hover="border-color:rgba(127,227,255,.8); box-shadow:0 0 16px rgba(95,216,255,.4);">CMD</div>
+    </div>
+  </header>
+
+  <main style="position:relative; z-index:4; display:grid; grid-template-columns:minmax(205px,285px) minmax(0,1fr) minmax(220px,315px); gap:16px; padding:14px 18px; min-width:0; min-height:0;">
+
+    <section style="display:flex; flex-direction:column; gap:14px; min-height:0; min-width:0; overflow:auto; padding-right:3px;">
+
+      <div style="position:relative; overflow:hidden; border:1px solid rgba(95,216,255,.15); border-radius:3px; background:rgba(5,15,30,.45); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); box-shadow:inset 0 1px 0 rgba(160,230,255,.08), inset 0 0 40px rgba(20,80,140,.12), 0 18px 40px rgba(0,0,0,.4); flex:none; padding:14px 16px 16px; transition:border-color .5s ease, box-shadow .5s ease;" style-hover="border-color:rgba(127,227,255,.4); box-shadow:inset 0 1px 0 rgba(160,230,255,.16), inset 0 0 50px rgba(30,110,180,.2), 0 18px 46px rgba(0,0,0,.5);">
+        <div style="position:absolute; left:0; right:0; top:0; height:34px; background:linear-gradient(180deg, rgba(127,227,255,.16), transparent); pointer-events:none; animation:om-panel-scan 9s ease-in-out infinite;"></div>
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.26em; color:rgba(127,227,255,.85);">01 · MISSION STATUS</div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.16em; color:rgba(207,230,242,.35);">ODYSSEY-07</div>
+        </div>
+        <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin-bottom:14px;">
+          <div style="font-size:22px; letter-spacing:.05em; color:#eaf8ff; font-weight:400;">ODYSSEY-07</div>
+          <div style="display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.18em; color:#8ff5d8; border:1px solid rgba(79,240,208,.3); padding:3px 8px; border-radius:2px; background:rgba(79,240,208,.07); white-space:nowrap;">
+            <span style="width:5px; height:5px; border-radius:50%; background:#4ff0d0; box-shadow:0 0 8px 2px rgba(79,240,208,.7); animation:om-blink 2s ease-in-out infinite;"></span>ACTIVE
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px 10px; font-family:'IBM Plex Mono',monospace;">
+          <div>
+            <div style="font-size:8.5px; letter-spacing:.2em; color:rgba(207,230,242,.4); margin-bottom:4px;">DISTANCE</div>
+            <div style="font-size:15px; color:#dff3ff;">18.42 <span style="font-size:10px; color:rgba(207,230,242,.45);">AU</span></div>
+          </div>
+          <div>
+            <div style="font-size:8.5px; letter-spacing:.2em; color:rgba(207,230,242,.4); margin-bottom:4px;">VELOCITY</div>
+            <div style="font-size:15px; color:#dff3ff;">{{ velocity }} <span style="font-size:10px; color:rgba(207,230,242,.45);">KM/H</span></div>
+          </div>
+        </div>
+        <div style="margin-top:16px;">
+          <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.2em; color:rgba(207,230,242,.45); margin-bottom:7px;">
+            <span>SIGNAL INTEGRITY</span><span style="color:#7fe3ff;">{{ signal }}%</span>
+          </div>
+          <div style="position:relative; height:3px; background:rgba(127,227,255,.1); border-radius:2px; overflow:hidden;">
+            <div style="position:absolute; inset:0 auto 0 0; width:94.8%; background:linear-gradient(90deg, rgba(79,240,208,.7), #7fe3ff); box-shadow:0 0 12px rgba(95,216,255,.8);"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="position:relative; overflow:hidden; display:flex; flex-direction:column; min-height:0; border:1px solid rgba(95,216,255,.15); border-radius:3px; background:rgba(5,15,30,.45); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); box-shadow:inset 0 1px 0 rgba(160,230,255,.08), 0 18px 40px rgba(0,0,0,.4); flex:1 1 250px; min-height:250px; padding:14px 12px 12px; transition:border-color .5s ease;" style-hover="border-color:rgba(127,227,255,.35);">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:11px; padding:0 3px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.26em; color:rgba(127,227,255,.85);">02 · PLANETARY BODIES</div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:rgba(207,230,242,.3);">08</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px; overflow:auto; min-height:0;">
+          <sc-for list="{{ bodies }}" as="b" hint-placeholder-count="8">
+            <div data-name="{{ b.name }}" onClick="{{ onSelect }}" onMouseEnter="{{ onHover }}" onMouseLeave="{{ onLeave }}" style="{{ b.rowStyle }}">
+              <span style="{{ b.dotStyle }}"></span>
+              <div style="display:flex; flex-direction:column; gap:2px; min-width:0;">
+                <div style="font-size:11.5px; letter-spacing:.14em; color:#e2f4ff; white-space:nowrap;">{{ b.name }}</div>
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:.14em; color:rgba(207,230,242,.38); white-space:nowrap;">{{ b.type }}</div>
+              </div>
+              <div style="margin-left:auto; text-align:right; font-family:'IBM Plex Mono',monospace;">
+                <div style="font-size:10px; color:#bfe8fb;">{{ b.au }}</div>
+                <div style="font-size:8px; letter-spacing:.12em; color:{{ b.statusColor }};">{{ b.moonLabel }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="position:relative; overflow:hidden; border:1px solid rgba(95,216,255,.15); border-radius:3px; background:rgba(5,15,30,.45); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); box-shadow:inset 0 1px 0 rgba(160,230,255,.08), 0 18px 40px rgba(0,0,0,.4); flex:none; padding:14px 16px 16px; transition:border-color .5s ease;" style-hover="border-color:rgba(127,227,255,.35);">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:13px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.26em; color:rgba(127,227,255,.85);">03 · SYSTEM STATUS</div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.14em; color:rgba(79,240,208,.6);">NOMINAL</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:11px;">
+          <sc-for list="{{ systems }}" as="s" hint-placeholder-count="4">
+            <div>
+              <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.2em; color:rgba(207,230,242,.5); margin-bottom:6px;">
+                <span>{{ s.label }}</span><span style="color:#cdeeff;">{{ s.value }}%</span>
+              </div>
+              <div style="position:relative; height:2px; background:rgba(127,227,255,.09);">
+                <div style="{{ s.barStyle }}"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section style="position:relative; min-height:0; min-width:0;">
+
+      <x-import component-from-global-scope="solar-system" from="./solar-system.js" hint-size="100%,100%" style="position:absolute; inset:0; width:100%; height:100%;"></x-import>
+
+      <div style="position:absolute; inset:0; pointer-events:none;">
+        <div style="position:absolute; left:0; top:0; width:26px; height:26px; border-left:1px solid rgba(127,227,255,.35); border-top:1px solid rgba(127,227,255,.35);"></div>
+        <div style="position:absolute; right:0; top:0; width:26px; height:26px; border-right:1px solid rgba(127,227,255,.35); border-top:1px solid rgba(127,227,255,.35);"></div>
+        <div style="position:absolute; left:0; bottom:0; width:26px; height:26px; border-left:1px solid rgba(127,227,255,.35); border-bottom:1px solid rgba(127,227,255,.35);"></div>
+        <div style="position:absolute; right:0; bottom:0; width:26px; height:26px; border-right:1px solid rgba(127,227,255,.35); border-bottom:1px solid rgba(127,227,255,.35);"></div>
+
+        <div style="position:absolute; left:14px; top:10px; display:flex; flex-direction:column; gap:5px; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.22em; color:rgba(127,227,255,.5);">
+          <div style="display:flex; align-items:center; gap:7px; color:#8ff5d8;"><span style="width:5px; height:5px; border-radius:50%; background:#4ff0d0; box-shadow:0 0 8px 2px rgba(79,240,208,.7); animation:om-blink 2.6s ease-in-out infinite;"></span>ORBITAL TRACKING ACTIVE</div>
+          <div style="color:rgba(207,230,242,.34);">8 PLANETARY BODIES DETECTED</div>
+          <div style="color:rgba(207,230,242,.34);">ASTEROID BELT // TRACKING</div>
+        </div>
+
+        <div style="position:absolute; right:14px; top:10px; text-align:right; display:flex; flex-direction:column; gap:5px; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.22em; color:rgba(127,227,255,.5);">
+          <div>TRACKING · {{ activeName }}</div>
+          <div style="color:rgba(207,230,242,.34);">ORB POS {{ orbitPos }}°</div>
+          <div style="color:rgba(207,230,242,.34);">LAT {{ lat }} · LNG {{ lng }}</div>
+        </div>
+
+        <div style="position:absolute; left:50%; top:50%; width:44%; height:44%; transform:translate(-50%,-50%); animation:om-bracket .8s ease both; opacity:.5;">
+          <div style="position:absolute; left:0; top:0; width:14px; height:14px; border-left:1px solid rgba(127,227,255,.5); border-top:1px solid rgba(127,227,255,.5);"></div>
+          <div style="position:absolute; right:0; top:0; width:14px; height:14px; border-right:1px solid rgba(127,227,255,.5); border-top:1px solid rgba(127,227,255,.5);"></div>
+          <div style="position:absolute; left:0; bottom:0; width:14px; height:14px; border-left:1px solid rgba(127,227,255,.5); border-bottom:1px solid rgba(127,227,255,.5);"></div>
+          <div style="position:absolute; right:0; bottom:0; width:14px; height:14px; border-right:1px solid rgba(127,227,255,.5); border-bottom:1px solid rgba(127,227,255,.5);"></div>
+        </div>
+
+        <div style="position:absolute; left:0; right:0; bottom:2px; display:flex; justify-content:space-between; padding:0 34px; font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.2em; color:rgba(207,230,242,.28);">
+          <span>SOL SYSTEM // LIVE</span>
+          <span>KUIPER FIELD 5.0K NODES</span>
+          <span>SYSTEM STATUS: NOMINAL</span>
+        </div>
+      </div>
+
+      <div style="{{ returnStyle }}" onClick="{{ onReset }}" style-hover="border-color:rgba(127,227,255,.85); background:rgba(95,216,255,.14); color:#eaf8ff;">◄ RETURN TO SOLAR SYSTEM</div>
+    </section>
+
+    <section style="display:flex; flex-direction:column; gap:14px; min-height:0; min-width:0; overflow:auto; padding-right:3px;">
+
+      <div style="position:relative; overflow:hidden; border:1px solid rgba(95,216,255,.15); border-radius:3px; background:rgba(5,15,30,.45); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); box-shadow:inset 0 1px 0 rgba(160,230,255,.08), 0 18px 40px rgba(0,0,0,.4); flex:none; padding:14px 16px 16px; transition:border-color .5s ease;" style-hover="border-color:rgba(127,227,255,.35);">
+        <div style="position:absolute; left:0; right:0; top:0; height:30px; background:linear-gradient(180deg, rgba(127,227,255,.13), transparent); pointer-events:none; animation:om-panel-scan 13s ease-in-out infinite;"></div>
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.26em; color:rgba(127,227,255,.85);">PLANET ANALYSIS</div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.16em; color:rgba(207,230,242,.35);">{{ activeIdx }}</div>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:14px;">
+          <div style="font-size:25px; letter-spacing:.1em; color:#eaf8ff;">{{ activeName }}</div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.18em; color:rgba(127,227,255,.55);">{{ activeType }}</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:13px 12px; font-family:'IBM Plex Mono',monospace;">
+          <div>
+            <div style="font-size:8.5px; letter-spacing:.2em; color:rgba(207,230,242,.4); margin-bottom:4px;">DISTANCE · SOL</div>
+            <div style="font-size:16px; color:#dff3ff;">{{ activeAu }}</div>
+          </div>
+          <div>
+            <div style="font-size:8.5px; letter-spacing:.2em; color:rgba(207,230,242,.4); margin-bottom:4px;">DIAMETER</div>
+            <div style="font-size:16px; color:#dff3ff;">{{ activeDia }}</div>
+          </div>
+          <div>
+            <div style="font-size:8.5px; letter-spacing:.2em; color:rgba(207,230,242,.4); margin-bottom:4px;">ORBITAL PERIOD</div>
+            <div style="font-size:16px; color:#dff3ff;">{{ activePeriod }}</div>
+          </div>
+          <div>
+            <div style="font-size:8.5px; letter-spacing:.2em; color:rgba(207,230,242,.4); margin-bottom:4px;">TEMPERATURE</div>
+            <div style="font-size:16px; color:#dff3ff;">{{ activeTemp }}</div>
+          </div>
+          <div>
+            <div style="font-size:8.5px; letter-spacing:.2em; color:rgba(207,230,242,.4); margin-bottom:4px;">MOONS</div>
+            <div style="font-size:16px; color:#dff3ff;">{{ activeMoonCount }}</div>
+          </div>
+          <div>
+            <div style="font-size:8.5px; letter-spacing:.2em; color:rgba(207,230,242,.4); margin-bottom:4px;">ORBIT POSITION</div>
+            <div style="font-size:16px; color:#7fe3ff;">{{ orbitPos }}°</div>
+          </div>
+        </div>
+        <div style="margin-top:13px; font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.16em; color:rgba(207,230,242,.35); border-top:1px solid rgba(95,216,255,.1); padding-top:9px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">SAT · {{ activeMoons }}</div>
+      </div>
+
+      <div style="position:relative; overflow:hidden; border:1px solid rgba(95,216,255,.15); border-radius:3px; background:rgba(5,15,30,.45); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); box-shadow:inset 0 1px 0 rgba(160,230,255,.08), 0 18px 40px rgba(0,0,0,.4); flex:none; padding:14px 16px 12px; transition:border-color .5s ease;" style-hover="border-color:rgba(127,227,255,.35);">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.26em; color:rgba(127,227,255,.85);">SIGNAL ANALYSIS</div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.16em; color:rgba(79,240,208,.7);">{{ freq }} GHZ</div>
+        </div>
+        <canvas data-om="wave" style="display:block; width:100%; height:70px;"></canvas>
+        <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.16em; color:rgba(207,230,242,.32); margin-top:8px;">
+          <span>AMP {{ amp }}</span><span>SNR {{ snr }} dB</span><span>PH {{ phase }}°</span>
+        </div>
+      </div>
+
+      <div style="position:relative; overflow:hidden; display:flex; flex-direction:column; min-height:0; border:1px solid rgba(95,216,255,.15); border-radius:3px; background:rgba(5,15,30,.45); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); box-shadow:inset 0 1px 0 rgba(160,230,255,.08), 0 18px 40px rgba(0,0,0,.4); flex:1 1 200px; min-height:200px; padding:14px 16px 12px; transition:border-color .5s ease;" style-hover="border-color:rgba(127,227,255,.35);">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.26em; color:rgba(127,227,255,.85);">ORBITAL TELEMETRY</div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.16em; color:rgba(207,230,242,.35);">T+284D</div>
+        </div>
+        <canvas data-om="chart" style="display:block; width:100%; flex:1; min-height:70px;"></canvas>
+        <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.16em; color:rgba(207,230,242,.3); margin-top:8px;">
+          <span>T-72H</span><span>T-48H</span><span>T-24H</span><span>NOW</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="position:relative; z-index:5; display:flex; align-items:center; gap:22px; padding:0 20px; min-width:0; overflow:hidden; border-top:1px solid rgba(95,216,255,.13); background:linear-gradient(0deg, rgba(6,16,32,.75), rgba(4,10,22,.3)); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); font-family:'IBM Plex Mono',monospace;">
+    <div style="display:flex; flex-direction:column; gap:3px;">
+      <div style="font-size:8.5px; letter-spacing:.22em; color:rgba(207,230,242,.38);">CURRENT COORDINATES</div>
+      <div style="font-size:12px; letter-spacing:.1em; color:#dff3ff; white-space:nowrap;">RA 14H 39M · DEC -60° 50'</div>
+    </div>
+    <div style="width:1px; height:26px; background:rgba(95,216,255,.16);"></div>
+    <div style="display:flex; flex-direction:column; gap:3px;">
+      <div style="font-size:8.5px; letter-spacing:.22em; color:rgba(207,230,242,.38);">SHIP VELOCITY</div>
+      <div style="font-size:12px; letter-spacing:.1em; color:#dff3ff; white-space:nowrap;">{{ velocity }} KM/H</div>
+    </div>
+    <div style="width:1px; height:26px; background:rgba(95,216,255,.16);"></div>
+    <div style="display:flex; flex-direction:column; gap:3px;">
+      <div style="font-size:8.5px; letter-spacing:.22em; color:rgba(207,230,242,.38);">SIGNAL</div>
+      <div style="display:flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.1em; color:#dff3ff;">
+        {{ signal }}%
+        <span style="display:block; width:74px; height:2px; background:rgba(127,227,255,.12);">
+          <span style="display:block; height:2px; width:94%; background:linear-gradient(90deg, rgba(79,240,208,.6), #7fe3ff); box-shadow:0 0 10px rgba(95,216,255,.7);"></span>
+        </span>
+      </div>
+    </div>
+    <div style="width:1px; height:26px; background:rgba(95,216,255,.16);"></div>
+    <div style="display:flex; flex-direction:column; gap:3px;">
+      <div style="font-size:8.5px; letter-spacing:.22em; color:rgba(207,230,242,.38);">MISSION TIME</div>
+      <div style="font-size:12px; letter-spacing:.1em; color:#dff3ff; white-space:nowrap;">{{ missionTime }}</div>
+    </div>
+    <div style="margin-left:auto; display:flex; align-items:center; gap:16px; flex:0 1 auto; overflow:hidden; font-size:9px; letter-spacing:.18em; color:rgba(207,230,242,.35);">
+      <span style="display:flex; align-items:center; gap:6px; white-space:nowrap;"><span style="width:5px; height:5px; border-radius:50%; background:#4ff0d0; box-shadow:0 0 8px 2px rgba(79,240,208,.6); animation:om-blink 3.2s ease-in-out infinite;"></span>TELEMETRY STREAM</span>
+      <span style="display:flex; align-items:center; gap:6px; white-space:nowrap;"><span style="width:5px; height:5px; border-radius:50%; background:#7fe3ff; box-shadow:0 0 8px 2px rgba(95,216,255,.6); animation:om-blink 2.1s ease-in-out infinite;"></span>DEEP SPACE NET</span>
+      <span style="display:flex; align-items:center; gap:6px; white-space:nowrap;"><span style="width:5px; height:5px; border-radius:50%; background:#9a7bff; box-shadow:0 0 8px 2px rgba(154,123,255,.6); animation:om-blink 4.4s ease-in-out infinite;"></span>AI NAV ASSIST</span>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;starDensity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;min&quot;:0.3,&quot;max&quot;:2,&quot;step&quot;:0.1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Environment&quot;},&quot;showNebula&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Environment&quot;}}">
+class Component extends DCLogic {
+  DATA = [
+    { name:'MERCURY', idx:'PLANET 01', type:'TERRESTRIAL', au:'0.39 AU', dia:'4,879 KM',   period:'88 D',   temp:'167°C',  moons:[],                                        color:'#9a968f', c2:'#4e4b47', seed:1.1 },
+    { name:'VENUS',   idx:'PLANET 02', type:'TERRESTRIAL', au:'0.72 AU', dia:'12,104 KM',  period:'225 D',  temp:'464°C',  moons:[],                                        color:'#e6c169', c2:'#8a5f1e', seed:1.9 },
+    { name:'EARTH',   idx:'PLANET 03', type:'TERRESTRIAL', au:'1.00 AU', dia:'12,742 KM',  period:'365 D',  temp:'15°C',   moons:['LUNA'],                                  color:'#4f9de0', c2:'#1e4c86', seed:2.6 },
+    { name:'MARS',    idx:'PLANET 04', type:'TERRESTRIAL', au:'1.52 AU', dia:'6,779 KM',   period:'687 D',  temp:'-63°C',  moons:['PHOBOS','DEIMOS'],                       color:'#d0703f', c2:'#7a2f14', seed:3.3 },
+    { name:'JUPITER', idx:'PLANET 05', type:'GAS GIANT',   au:'5.20 AU', dia:'139,820 KM', period:'11.9 Y', temp:'-145°C', moons:['IO','EUROPA','GANYMEDE','CALLISTO'],     color:'#d8b48c', c2:'#8c6244', seed:4.2 },
+    { name:'SATURN',  idx:'PLANET 06', type:'GAS GIANT',   au:'9.54 AU', dia:'116,460 KM', period:'29.5 Y', temp:'-178°C', moons:['ENCELADUS','RHEA','TITAN'],              color:'#e2cd96', c2:'#8a7440', seed:5.1 },
+    { name:'URANUS',  idx:'PLANET 07', type:'ICE GIANT',   au:'19.2 AU', dia:'50,724 KM',  period:'84 Y',   temp:'-195°C', moons:['TITANIA','OBERON'],                      color:'#8fd7e0', c2:'#3d7f8c', seed:6.0 },
+    { name:'NEPTUNE', idx:'PLANET 08', type:'ICE GIANT',   au:'30.1 AU', dia:'49,244 KM',  period:'165 Y',  temp:'-201°C', moons:['TRITON'],                                color:'#4a76d8', c2:'#1d3480', seed:6.8 }
+  ];
+  SYSTEMS = [
+    { label:'PROPULSION', value:98, color:'#7fe3ff' },
+    { label:'NAVIGATION', value:100, color:'#4ff0d0' },
+    { label:'LIFE SUPPORT', value:96, color:'#7fe3ff' },
+    { label:'COMMUNICATION', value:91, color:'#9a7bff' }
+  ];
+  state = { active:'EARTH', focused:false, hover:null, orbitPos:'000.0', clock:'', missionTime:'284D 14H 32M',
+    signal:'94.82', velocity:'38,420', freq:'8.402', amp:'0.842', snr:'41.2', phase:'128', lat:'18.4201', lng:'-77.9281' };
+
+  componentDidMount() {
+    this.bg = document.querySelector('canvas[data-om="bg"]');
+    this.wave = document.querySelector('canvas[data-om="wave"]');
+    this.chart = document.querySelector('canvas[data-om="chart"]');
+    this.t0 = performance.now(); this.stars = [];
+    this.initStars(); this.sizeAll();
+    this.onResize = () => { this.sizeAll(); this.initStars(); };
+    window.addEventListener('resize', this.onResize);
+    this.onPick = (e) => { const n = e.detail && e.detail.name; if (!n) return;
+      if (n === 'SOL SYSTEM') this.setState({ focused:false });
+      else this.setState({ active:n, focused:true }); };
+    this.onTick = (e) => { if (e.detail) this.setState({ orbitPos: e.detail.angle }); };
+    document.addEventListener('planetselect', this.onPick);
+    document.addEventListener('planettick', this.onTick);
+    this.loop = (now) => { this.draw(now); this.raf = requestAnimationFrame(this.loop); };
+    this.raf = requestAnimationFrame(this.loop);
+    this.tick = setInterval(() => this.pulseNumbers(), 1000);
+    this.pulseNumbers();
+  }
+  componentWillUnmount() {
+    cancelAnimationFrame(this.raf); clearInterval(this.tick);
+    window.removeEventListener('resize', this.onResize);
+    document.removeEventListener('planetselect', this.onPick);
+    document.removeEventListener('planettick', this.onTick);
+  }
+
+  sizeAll() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    [this.bg, this.wave, this.chart].forEach(c => {
+      if (!c) return;
+      const r = c.getBoundingClientRect();
+      c.width = Math.max(1, Math.round(r.width * dpr));
+      c.height = Math.max(1, Math.round(r.height * dpr));
+      c.__dpr = dpr; c.__w = r.width; c.__h = r.height;
+    });
+  }
+  initStars() {
+    const n = Math.round(360 * (this.props.starDensity ?? 1));
+    this.stars = [];
+    for (let i = 0; i < n; i++) {
+      const layer = Math.random();
+      this.stars.push({ x: Math.random(), y: Math.random(), r: layer < .85 ? Math.random()*.6+.2 : Math.random()*.9+.7,
+        a: layer < .85 ? Math.random()*.35+.08 : Math.random()*.3+.35, v: (layer < .85 ? .0012 : .003)*(Math.random()*.6+.7),
+        tw: Math.random()*6.28, hue: Math.random() < .12 ? (Math.random() < .5 ? '190,230,255' : '190,170,255') : '255,255,255' });
+    }
+  }
+  drawNebula(ctx, w, h) {
+    if (this.props.showNebula === false) return;
+    [[.16,.26,.44,'150,110,255',.05],[.8,.16,.34,'60,200,230',.04],[.62,.84,.46,'50,110,220',.045],[.06,.8,.3,'80,220,255',.03]]
+      .forEach(([x,y,r,c,a]) => {
+        const g = ctx.createRadialGradient(x*w, y*h, 0, x*w, y*h, r*Math.max(w,h));
+        g.addColorStop(0,'rgba('+c+','+a+')'); g.addColorStop(1,'rgba('+c+',0)');
+        ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+      });
+  }
+  draw(now) {
+    const t = (now - this.t0) / 1000;
+    if (this.bg && this.bg.width) {
+      const c = this.bg, ctx = c.getContext('2d'), w = c.width, h = c.height;
+      ctx.clearRect(0,0,w,h); this.drawNebula(ctx,w,h);
+      for (const s of this.stars) {
+        const y = (s.y + t*s.v*.02) % 1, x = ((s.x - t*s.v*.006) % 1 + 1) % 1;
+        const tw = .72 + .28*Math.sin(t*.7 + s.tw);
+        ctx.fillStyle = 'rgba(' + s.hue + ',' + (s.a*tw).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(x*w, y*h, s.r*(c.__dpr||1), 0, 6.2832); ctx.fill();
+      }
+    }
+    const A = this.DATA.find(d => d.name === this.state.active) || this.DATA[2];
+    if (this.wave && this.wave.width) {
+      const c = this.wave, ctx = c.getContext('2d'), d = c.__dpr||1, w = c.__w, h = c.__h;
+      ctx.setTransform(d,0,0,d,0,0); ctx.clearRect(0,0,w,h);
+      ctx.strokeStyle = 'rgba(127,227,255,.07)'; ctx.lineWidth = 1;
+      for (let i=1;i<4;i++){ const y=h*i/4; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+      const sd = A.seed;
+      const line = (amp, sp, col, lw) => {
+        ctx.beginPath();
+        for (let px=0; px<=w; px+=2) {
+          const u = px/w;
+          const v = Math.sin(u*22 + t*sp + sd)*.5 + Math.sin(u*7.3 - t*sp*.6)*.32 + Math.sin(u*41 + t*sp*1.7)*.16;
+          const y = h/2 - v*amp*(Math.sin(u*Math.PI) ** .6);
+          px ? ctx.lineTo(px,y) : ctx.moveTo(px,y);
+        }
+        ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.stroke();
+      };
+      ctx.shadowColor = 'rgba(95,216,255,.55)'; ctx.shadowBlur = 8;
+      line(h*.34, 1.5, 'rgba(127,227,255,.9)', 1.4);
+      ctx.shadowBlur = 0;
+      line(h*.2, -1.05, 'rgba(154,123,255,.42)', 1);
+      line(h*.11, 2.4, 'rgba(79,240,208,.3)', 1);
+    }
+    if (this.chart && this.chart.width) {
+      const c = this.chart, ctx = c.getContext('2d'), d = c.__dpr||1, w = c.__w, h = c.__h;
+      ctx.setTransform(d,0,0,d,0,0); ctx.clearRect(0,0,w,h);
+      ctx.strokeStyle = 'rgba(127,227,255,.06)'; ctx.lineWidth = 1;
+      for (let i=0;i<=4;i++){ const y=h*i/4+.5; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+      for (let i=1;i<6;i++){ const x=w*i/6+.5; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+      const sd = A.seed, pts = [];
+      for (let px=0; px<=w; px+=3) {
+        const u = px/w;
+        const base = .58 + .3*Math.sin(u*3.1+sd) + .16*Math.sin(u*7.7+sd*2+t*.12) + .07*Math.sin(u*19+t*.4);
+        pts.push([px, h - Math.max(.08, Math.min(.94, base*.62+.16))*h]);
+      }
+      const g = ctx.createLinearGradient(0,0,0,h);
+      g.addColorStop(0,'rgba(127,227,255,.26)'); g.addColorStop(1,'rgba(127,227,255,0)');
+      ctx.beginPath(); ctx.moveTo(0,h); pts.forEach(p => ctx.lineTo(p[0],p[1])); ctx.lineTo(w,h); ctx.closePath();
+      ctx.fillStyle = g; ctx.fill();
+      ctx.beginPath(); pts.forEach((p,i) => i ? ctx.lineTo(p[0],p[1]) : ctx.moveTo(p[0],p[1]));
+      ctx.strokeStyle = 'rgba(160,236,255,.95)'; ctx.lineWidth = 1.5;
+      ctx.shadowColor = 'rgba(95,216,255,.7)'; ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
+      ctx.beginPath();
+      for (let px=0; px<=w; px+=3) {
+        const u = px/w, b = .42 + .18*Math.sin(u*4.6-sd) + .1*Math.sin(u*11+t*.09);
+        const y = h - Math.max(.05, Math.min(.9, b))*h;
+        px ? ctx.lineTo(px,y) : ctx.moveTo(px,y);
+      }
+      ctx.strokeStyle = 'rgba(154,123,255,.45)'; ctx.lineWidth = 1; ctx.setLineDash([3,4]); ctx.stroke(); ctx.setLineDash([]);
+      const last = pts[pts.length-1];
+      if (last) {
+        const r = 2.6 + Math.sin(t*2.2)*.7;
+        ctx.fillStyle = '#dffaff'; ctx.beginPath(); ctx.arc(last[0]-1, last[1], r, 0, 6.2832); ctx.fill();
+        ctx.strokeStyle = 'rgba(127,227,255,.35)'; ctx.beginPath(); ctx.arc(last[0]-1, last[1], r+4+Math.sin(t*2.2)*1.5, 0, 6.2832); ctx.stroke();
+      }
+    }
+  }
+  pulseNumbers() {
+    const now = new Date(), p = n => String(n).padStart(2,'0'), j = (b,s,f) => (b + (Math.random()-.5)*s).toFixed(f);
+    this.setState({
+      clock: p(now.getUTCHours())+':'+p(now.getUTCMinutes())+':'+p(now.getUTCSeconds()),
+      missionTime: '284D 14H '+p(32 + (now.getUTCSeconds() % 3))+'M',
+      signal: j(94.8,.3,2), velocity: (38420 + Math.round((Math.random()-.5)*40)).toLocaleString('en-US'),
+      freq: j(8.402,.02,3), amp: j(.84,.06,3), snr: j(41.2,1.4,1), phase: String(Math.round(128+(Math.random()-.5)*14)),
+      lat: j(18.42,.01,4), lng: j(-77.928,.01,4)
+    });
+  }
+
+  stage() { return document.querySelector('solar-system'); }
+  select = (e) => {
+    const name = e.currentTarget.dataset.name;
+    this.setState({ active: name, focused: true });
+    const s = this.stage(); if (s && s.focusPlanet) s.focusPlanet(name);
+  };
+  reset = () => { this.setState({ focused: false }); const s = this.stage(); if (s && s.resetView) s.resetView(); };
+  hover = (e) => this.setState({ hover: e.currentTarget.dataset.name });
+  leave = () => this.setState({ hover: null });
+  rgba(hex, a) { const n = parseInt(hex.slice(1),16); return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }
+
+  renderVals() {
+    const A = this.DATA.find(d => d.name === this.state.active) || this.DATA[2];
+    const bodies = this.DATA.map(d => {
+      const on = this.state.active === d.name, hv = this.state.hover === d.name;
+      return {
+        name: d.name, type: d.type, au: d.au,
+        moonLabel: d.moons.length ? d.moons.length + ' MOON' + (d.moons.length > 1 ? 'S' : '') : 'NO MOONS',
+        statusColor: on ? '#8ff5d8' : 'rgba(207,230,242,.35)',
+        rowStyle: 'display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:2px; cursor:pointer;'
+          + 'border:1px solid ' + (on ? 'rgba(127,227,255,.42)' : hv ? 'rgba(95,216,255,.22)' : 'rgba(95,216,255,.08)') + ';'
+          + 'background:' + (on ? 'linear-gradient(90deg, rgba(95,216,255,.16), rgba(95,216,255,.03))' : hv ? 'rgba(95,216,255,.05)' : 'rgba(255,255,255,.012)') + ';'
+          + (on ? 'box-shadow:inset 0 0 22px rgba(60,160,240,.16), 0 0 18px rgba(60,160,240,.1);' : '')
+          + 'transition:all .4s ease;',
+        dotStyle: 'flex:none; width:13px; height:13px; border-radius:50%; background:radial-gradient(circle at 32% 28%, ' + d.color + ', ' + d.c2 + ' 70%, #05080f);'
+          + 'box-shadow:0 0 ' + (on ? 14 : 6) + 'px ' + (on ? 3 : 1) + 'px ' + this.rgba(d.color, on ? .6 : .28) + ';'
+      };
+    });
+    const systems = this.SYSTEMS.map(s => ({ label: s.label, value: s.value,
+      barStyle: 'position:absolute; inset:0 auto 0 0; height:2px; width:' + s.value + '%; background:linear-gradient(90deg, ' + this.rgba(s.color,.35) + ', ' + s.color + '); box-shadow:0 0 10px ' + this.rgba(s.color,.7) + ';' }));
+
+    return {
+      bodies, systems,
+      clock: this.state.clock, missionTime: this.state.missionTime, signal: this.state.signal, velocity: this.state.velocity,
+      freq: this.state.freq, amp: this.state.amp, snr: this.state.snr, phase: this.state.phase,
+      lat: this.state.lat, lng: this.state.lng, orbitPos: this.state.orbitPos,
+      activeName: A.name, activeIdx: A.idx, activeType: A.type, activeAu: A.au, activeDia: A.dia,
+      activePeriod: A.period, activeTemp: A.temp, activeMoonCount: String(A.moons.length).padStart(2,'0'),
+      activeMoons: A.moons.length ? A.moons.join(' · ') : 'NO NATURAL SATELLITES',
+      onSelect: this.select, onHover: this.hover, onLeave: this.leave, onReset: this.reset,
+      returnStyle: 'position:absolute; left:50%; bottom:26px; z-index:4;'
+        + 'padding:8px 18px; border:1px solid rgba(95,216,255,.35); border-radius:2px; background:rgba(5,15,30,.6);'
+        + "backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); font-family:'IBM Plex Mono',monospace;"
+        + 'font-size:9.5px; letter-spacing:.22em; color:rgba(207,230,242,.8); cursor:pointer; white-space:nowrap;'
+        + 'transition:all .45s ease; box-shadow:0 0 26px rgba(20,80,140,.35);'
+        + (this.state.focused ? 'opacity:1; pointer-events:auto; transform:translate(-50%,0);' : 'opacity:0; pointer-events:none; transform:translate(-50%,10px);')
+    };
+  }
+}
+</script>
+</body>
+</html>
