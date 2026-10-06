@@ -2,15 +2,33 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Logic for sign in
-    console.log("Signing in...", { email, password });
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Sign in failed");
+      router.push("/admin");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign in failed");
+      setLoading(false);
+    }
   };
 
   return (
@@ -36,6 +54,12 @@ export default function SignIn() {
             <h1 style={{ fontSize: '22px', letterSpacing: '.15em', color: '#F6F6F3', whiteSpace: 'nowrap', fontWeight: 500 }}>AUTHORIZATION</h1>
             <p style={{ fontFamily: 'var(--font-body), sans-serif', fontSize: '10px', letterSpacing: '.22em', color: 'rgba(51,245,117,.5)', marginTop: '8px' }}>SOL SYSTEM // ACCESS PORTAL</p>
           </div>
+
+          {error && (
+            <div className="mb-5 rounded p-3 text-center" style={{ fontFamily: 'var(--font-body), sans-serif', fontSize: '11px', letterSpacing: '.1em', background: 'rgba(168,31,42,.2)', border: '1px solid rgba(211,39,53,.4)', color: '#F3CED1' }}>
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="flex flex-col gap-2">
@@ -64,10 +88,11 @@ export default function SignIn() {
 
             <button 
               type="submit"
+              disabled={loading}
               className="mt-4 w-full p-3 rounded text-[#231F20] hover:text-[#231F20] transition-all hover:shadow-[0_0_20px_rgba(11,218,81,.6)]"
               style={{ background: 'linear-gradient(90deg, #0BDA51, #33F575)', fontFamily: 'var(--font-body), sans-serif', fontSize: '12px', letterSpacing: '.2em', fontWeight: 600 }}
             >
-              INITIALIZE LINK
+              {loading ? "CONNECTING..." : "INITIALIZE LINK"}
             </button>
           </form>
 
