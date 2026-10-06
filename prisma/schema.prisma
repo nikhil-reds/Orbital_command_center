@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  COMMANDER
+  PILOT
+  OPERATOR
+}
+
+enum MissionStatus {
+  PLANNED
+  ACTIVE
+  IN_TRANSIT
+  COMPLETED
+  ABORTED
+}
+
+enum VesselStatus {
+  DOCKED
+  IN_FLIGHT
+  MAINTENANCE
+  DECOMMISSIONED
+}
+
+enum LogLevel {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      UserRole @default(OPERATOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  missions Mission[]
+  logs     LogEntry[]
+
+  @@map("users")
+}
+
+model Planet {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  idx       String
+  type      String
+  au        String
+  dia       String
+  period    String
+  temp      String
+  color     String
+  c2        String
+  seed      Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  moons Moon[]
+
+  @@map("planets")
+}
+
+model Moon {
+  id        String   @id @default(uuid())
+  name      String
+  planetId  String
+  planet    Planet   @relation(fields: [planetId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("moons")
+}
+
+model Mission {
+  id              String        @id @default(uuid())
+  code            String        @unique
+  name            String
+  status          MissionStatus @default(ACTIVE)
+  distance        Float
+  velocity        Float
+  signalIntegrity Float
+  operatorId      String?
+  operator        User?         @relation(fields: [operatorId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  telemetryLogs TelemetryLog[]
+
+  @@map("missions")
+}
+
+model SystemTelemetry {
+  id          String   @id @default(uuid())
+  systemLabel String
+  value       Float
+  color       String
+  status      String   @default("NOMINAL")
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_telemetry")
+}
+
+model TelemetryLog {
+  id        String   @id @default(uuid())
+  missionId String
+  mission   Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  freq      Float
+  amp       Float
+  snr       Float
+  phase     Float
+  lat       Float
+  lng       Float
+  timestamp DateTime @default(now())
+
+  @@map("telemetry_logs")
+}
+
+model FleetVessel {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  callsign    String       @unique
+  status      VesselStatus @default(IN_FLIGHT)
+  coordinates String
+  velocity    Float
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("fleet_vessels")
+}
+
+model LogEntry {
+  id        String   @id @default(uuid())
+  level     LogLevel @default(INFO)
+  message   String
+  source    String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  timestamp DateTime @default(now())
+
+  @@map("log_entries")
+}
