@@ -1,20 +1,37 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 type Status = "pending" | "progress" | "review" | "completed";
 type Filter = "all" | Status;
+type TagColor = "purple" | "orange" | "pink" | "green";
 
 interface Task {
   id: string;
   tag: string;
-  tagColor: "purple" | "orange" | "pink" | "green";
+  tagColor: TagColor;
   title: string;
   note: string;
   progress: number;
   status: Status;
   people: string[];
 }
+
+interface ApiTask {
+  id: string;
+  tag: string;
+  tagColor: TagColor;
+  title: string;
+  note: string;
+  progress: number;
+  status: "PENDING" | "IN_PROGRESS" | "REVIEW" | "COMPLETED";
+  assignees: string[];
+}
+
+const TO_UI: Record<ApiTask["status"], Status> = { PENDING: "pending", IN_PROGRESS: "progress", REVIEW: "review", COMPLETED: "completed" };
+const TO_API: Record<Status, ApiTask["status"]> = { pending: "PENDING", progress: "IN_PROGRESS", review: "REVIEW", completed: "COMPLETED" };
+
+const fromApi = (t: ApiTask): Task => ({ id: t.id, tag: t.tag, tagColor: t.tagColor, title: t.title, note: t.note, progress: t.progress, status: TO_UI[t.status], people: t.assignees });
 
 const COLUMNS: { id: Status; title: string; dot: string; bar: string }[] = [
   { id: "pending", title: "Pending", dot: "#6366f1", bar: "#6366f1" },
@@ -32,35 +49,78 @@ const TAGS = {
 
 const AVATARS = ["#f97316", "#8b5cf6", "#0ea5e9", "#ec4899"];
 
-const INITIAL: Task[] = [
-  { id: "1", tag: "ILLUSTRATION", tagColor: "purple", title: "Add one more type of illustration on the home screen", note: "Not started yet", progress: 0, status: "pending", people: ["AL", "JD", "MK"] },
-  { id: "2", tag: "UX DESIGN", tagColor: "purple", title: "Create designs for admin, and for user web and android platform", note: "Not started yet", progress: 0, status: "pending", people: ["RS", "TJ"] },
-  { id: "3", tag: "PROTOTYPE", tagColor: "purple", title: "Create prototype for admin, and for user web and android platform", note: "Not started yet", progress: 0, status: "pending", people: ["JD", "AL"] },
-  { id: "4", tag: "WIREFRAMES", tagColor: "orange", title: "Create Wireframes for admin, and for user web and android platform", note: "50% completed", progress: 50, status: "progress", people: ["MK", "RS", "AL"] },
-  { id: "5", tag: "ARCHITECTURE", tagColor: "orange", title: "Create information architecture for admin, and for user web and android", note: "60% completed", progress: 60, status: "progress", people: ["TJ", "JD"] },
-  { id: "6", tag: "TASK FLOW", tagColor: "pink", title: "Create Task Flow for admin, and for user web and android platform", note: "Under Review", progress: 90, status: "review", people: ["AL", "MK", "RS"] },
-  { id: "7", tag: "USER PERSONAS", tagColor: "green", title: "Create Personas for all type of users on the base of research data", note: "Task Finished", progress: 100, status: "completed", people: ["JD", "TJ", "AL"] },
-  { id: "8", tag: "USER STORIES", tagColor: "green", title: "Create User Stories for admin, and for user web and android platform", note: "Task Finished", progress: 100, status: "completed", people: ["RS", "MK"] },
-];
-
 export default function TodoPage() {
-  const [tasks, setTasks] = useState<Task[]>(INITIAL);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [dragId, setDragId] = useState<string | null>(null);
   const [overCol, setOverCol] = useState<Status | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState<{ title: string; tag: string; tagColor: TagColor; status: Status }>({ title: "", tag: "", tagColor: "purple", status: "pending" });
 
-  const drop = (status: Status) => {
-    if (!dragId) return;
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === dragId
-          ? { ...t, status, progress: status === "completed" ? 100 : status === "pending" ? 0 : t.progress, note: status === "completed" ? "Task Finished" : status === "pending" ? "Not started yet" : status === "review" ? "Under Review" : `${t.progress}% completed` }
-          : t
-      )
-    );
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/tasks", { cache: "no-store" });
+      if (!res.ok) throw new Error();
+      setTasks(((await res.json()) as ApiTask[]).map(fromApi));
+      setError(null);
+    } catch {
+      setError("Could not load tasks");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const drop = async (status: Status) => {
+    const id = dragId;
     setDragId(null);
     setOverCol(null);
+    const task = tasks.find(t => t.id === id);
+    if (!id || !task || task.status === status) return;
+
+    const prev = tasks;
+    setTasks(p => p.map(t => (t.id === id ? { ...t, status } : t))); // optimistic
+    try {
+      const res = await fetch(`/api/tasks/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: TO_API[status] }) });
+      if (!res.ok) throw new Error();
+      const updated = fromApi(await res.json());
+      setTasks(p => p.map(t => (t.id === id ? updated : t)));
+    } catch {
+      setTasks(prev);
+      setError("Could not move task");
+    }
+  };
+
+  const createTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.title.trim()) return;
+    try {
+      const res = await fetch("/api/tasks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: form.title, tag: form.tag, tagColor: form.tagColor, status: TO_API[form.status] }) });
+      if (!res.ok) throw new Error();
+      const created = fromApi(await res.json());
+      setTasks(p => [...p, created]);
+      setForm({ title: "", tag: "", tagColor: "purple", status: "pending" });
+      setAdding(false);
+      setError(null);
+    } catch {
+      setError("Could not create task");
+    }
+  };
+
+  const removeTask = async (id: string) => {
+    const prev = tasks;
+    setTasks(p => p.filter(t => t.id !== id));
+    try {
+      const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+    } catch {
+      setTasks(prev);
+      setError("Could not delete task");
+    }
   };
 
   const visibleCols = COLUMNS.filter(c => filter === "all" || c.id === filter);
@@ -74,6 +134,7 @@ export default function TodoPage() {
   const total = tasks.length;
   const done = tasks.filter(t => t.status === "completed").length;
   const font = { fontFamily: "var(--font-body), sans-serif" };
+  const inputStyle = { ...font, background: "rgba(51,53,56,.6)", border: "1px solid rgba(11,218,81,.2)", color: "#F6F6F3" };
 
   return (
     <div className="flex flex-col gap-6">
@@ -88,12 +149,33 @@ export default function TodoPage() {
           </p>
         </div>
         <button
+          onClick={() => setAdding(a => !a)}
           className="px-4 py-2 rounded text-[10px] font-bold tracking-[0.18em] text-[#231F20] transition-all hover:shadow-[0_0_18px_rgba(11,218,81,0.7)]"
           style={{ ...font, background: "linear-gradient(90deg,#0BDA51,#33F575)" }}
         >
-          + NEW TASK
+          {adding ? "× CANCEL" : "+ NEW TASK"}
         </button>
       </header>
+
+      {error && (
+        <div className="rounded px-4 py-2 text-xs" style={{ ...font, background: "rgba(211,39,53,.15)", border: "1px solid rgba(211,39,53,.4)", color: "#F3CED1" }}>
+          {error}
+        </div>
+      )}
+
+      {adding && (
+        <form onSubmit={createTask} className="flex flex-wrap items-center gap-3 rounded-lg p-3" style={{ background: "rgba(35,31,32,.6)", border: "1px solid rgba(11,218,81,.2)" }}>
+          <input autoFocus required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Task title" className="flex-1 min-w-[220px] px-3 py-2 rounded text-xs outline-none" style={inputStyle} />
+          <input value={form.tag} onChange={e => setForm(f => ({ ...f, tag: e.target.value }))} placeholder="Tag (e.g. DESIGN)" className="w-36 px-3 py-2 rounded text-xs outline-none" style={inputStyle} />
+          <select value={form.tagColor} onChange={e => setForm(f => ({ ...f, tagColor: e.target.value as TagColor }))} className="px-3 py-2 rounded text-xs outline-none" style={inputStyle}>
+            {(Object.keys(TAGS) as TagColor[]).map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as Status }))} className="px-3 py-2 rounded text-xs outline-none" style={inputStyle}>
+            {COLUMNS.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+          </select>
+          <button type="submit" className="px-4 py-2 rounded text-[10px] font-bold tracking-[0.18em] text-[#231F20]" style={{ ...font, background: "#0BDA51" }}>ADD</button>
+        </form>
+      )}
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -160,9 +242,12 @@ export default function TodoPage() {
                       className="flex flex-col gap-2.5 rounded-lg p-3 cursor-grab active:cursor-grabbing transition-all hover:-translate-y-0.5 hover:border-[rgba(51,245,117,.4)]"
                       style={{ background: "rgba(51,53,56,.7)", border: "1px solid rgba(11,218,81,.15)", boxShadow: "0 4px 14px rgba(0,0,0,.3)", opacity: dragId === t.id ? 0.4 : 1 }}
                     >
-                      <span className="self-start rounded px-2 py-0.5 text-[8px] font-bold tracking-[0.12em]" style={{ ...font, background: TAGS[t.tagColor].bg, color: TAGS[t.tagColor].fg }}>
-                        {t.tag}
-                      </span>
+                      <div className="flex items-start justify-between">
+                        <span className="rounded px-2 py-0.5 text-[8px] font-bold tracking-[0.12em]" style={{ ...font, background: TAGS[t.tagColor].bg, color: TAGS[t.tagColor].fg }}>
+                          {t.tag}
+                        </span>
+                        <button onClick={() => removeTask(t.id)} aria-label="Delete task" className="text-[14px] leading-none text-[rgba(246,246,243,.35)] hover:text-red-400 transition-colors">×</button>
+                      </div>
                       <p className="text-[12px] text-[#F6F6F3]" style={{ lineHeight: 1.45 }}>{t.title}</p>
                       <div className="flex flex-col gap-1.5">
                         <div className="flex justify-between text-[9px]" style={{ ...font, color: "rgba(246,246,243,.55)" }}>
@@ -194,7 +279,7 @@ export default function TodoPage() {
                   ))}
                   {colTasks.length === 0 && (
                     <div className="rounded-xl py-6 text-center text-[9px] tracking-[0.15em]" style={{ ...font, border: "1px dashed rgba(11,218,81,.2)", color: "rgba(246,246,243,.35)" }}>
-                      DROP TASKS HERE
+                      {loading ? "LOADING..." : "DROP TASKS HERE"}
                     </div>
                   )}
                 </div>
