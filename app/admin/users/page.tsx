@@ -1,12 +1,3 @@
-export default function Page() {
-  return (
-    <div>
-      <h1 style={{ fontSize: '3rem', fontWeight: 600, letterSpacing: '0.1em', color: '#F6F6F3', textShadow: '0 0 20px rgba(51,245,117,0.5)', marginBottom: '2rem' }}>
-        OPERATIVE MANAGEMENT
-      </h1>
-      <p style={{ fontFamily: 'var(--font-body), sans-serif', color: 'rgba(246,246,243,.7)', fontSize: '14px' }}>
-        System monitoring interface active. Awaiting operator input...
-      </p>
-    </div>
-  );
-}
+import { Badge, Card, Header, Metric } from "../_components";
+const users=[["Avery Chen","Flight director","Active","2 min ago"],["Mira Patel","Navigation lead","Active","6 min ago"],["Jon Bell","Systems engineer","Away","31 min ago"],["Nia Brooks","Security analyst","Active","8 min ago"]];
+export default function Page(){return <><Header title="Operatives" description="Access, ownership, and availability across the command team." action={<button className="admin-button">Add operative</button>}/><div className="admin-grid metrics"><Metric label="TOTAL OPERATIVES" value="48" change="+4 this quarter"/><Metric label="ONLINE NOW" value="31" change="65% availability"/><Metric label="ADMIN ACCESS" value="08"/><Metric label="PENDING INVITES" value="03"/></div><Card title="Team directory"><table className="admin-table"><thead><tr><th>OPERATIVE</th><th>ROLE</th><th>STATUS</th><th>LAST ACTIVE</th></tr></thead><tbody>{users.map(u=><tr key={u[0]}><td><b>{u[0]}</b></td><td>{u[1]}</td><td><Badge tone={u[2]==="Active"?"good":"warn"}>{u[2]}</Badge></td><td>{u[3]}</td></tr>)}</tbody></table></Card></>}
