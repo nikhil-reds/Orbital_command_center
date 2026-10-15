@@ -1,12 +1,2 @@
-export default function Page() {
-  return (
-    <div>
-      <h1 style={{ fontSize: '3rem', fontWeight: 600, letterSpacing: '0.1em', color: '#F6F6F3', textShadow: '0 0 20px rgba(51,245,117,0.5)', marginBottom: '2rem' }}>
-        SYSTEM SECURITY
-      </h1>
-      <p style={{ fontFamily: 'var(--font-body), sans-serif', color: 'rgba(246,246,243,.7)', fontSize: '14px' }}>
-        System monitoring interface active. Awaiting operator input...
-      </p>
-    </div>
-  );
-}
+import { Badge, Card, Header, Metric } from "../_components";
+export default function Page(){return <><Header title="System security" description="Identity, endpoint, and policy status for the command network." action={<button className="admin-button secondary">View policies</button>}/><div className="admin-grid metrics"><Metric label="SECURITY SCORE" value="96 / 100"/><Metric label="PROTECTED ENDPOINTS" value="184"/><Metric label="OPEN ALERTS" value="02"/><Metric label="LAST AUDIT" value="Today" change="08:00 UTC"/></div><div className="admin-grid two"><Card title="Open security items"><div className="admin-list"><div><span>Unusual relay token refresh<small>Europa relay · 12 min ago</small></span><Badge tone="warn">Review</Badge></div><div><span>New operator device<small>Research division · 38 min ago</small></span><Badge tone="warn">Review</Badge></div><div><span>Firewall policy deployment<small>All command endpoints</small></span><Badge tone="good">Passed</Badge></div></div></Card><Card title="Protection controls"><div className="admin-list"><div><span>Multi-factor verification<small>Required for all administrator roles</small></span><Badge tone="good">Enabled</Badge></div><div><span>Session isolation<small>Workspace sessions are compartmentalized</small></span><Badge tone="good">Enabled</Badge></div><div><span>Key rotation<small>Next rotation in 14 days</small></span><Badge>Scheduled</Badge></div></div></Card></div></>}
