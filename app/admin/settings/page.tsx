@@ -1,12 +1,2 @@
-export default function Page() {
-  return (
-    <div>
-      <h1 style={{ fontSize: '3rem', fontWeight: 600, letterSpacing: '0.1em', color: '#F6F6F3', textShadow: '0 0 20px rgba(51,245,117,0.5)', marginBottom: '2rem' }}>
-        COMMAND SETTINGS
-      </h1>
-      <p style={{ fontFamily: 'var(--font-body), sans-serif', color: 'rgba(246,246,243,.7)', fontSize: '14px' }}>
-        System monitoring interface active. Awaiting operator input...
-      </p>
-    </div>
-  );
-}
+import { Card, Header } from "../_components";
+export default function Page(){return <><Header title="Command settings" description="Workspace preferences and operational notification defaults." action={<button className="admin-button">Save changes</button>}/><div className="admin-grid two"><Card title="Workspace profile"><div className="admin-form"><label>Command center name<input defaultValue="REDS Command Center"/></label><label>Default timezone<select defaultValue="utc"><option value="utc">UTC (Coordinated Universal Time)</option><option>Asia/Kolkata</option><option>America/Los_Angeles</option></select></label><label>Daily briefing time<input defaultValue="08:00 UTC"/></label></div></Card><Card title="Notifications"><div className="admin-list"><div className="admin-toggle"><span>Critical mission alerts<small>Immediate alert for priority-one events</small></span><span /></div><div className="admin-toggle"><span>Daily command briefing<small>Summary delivered at the scheduled time</small></span><span /></div><div className="admin-toggle"><span>Security policy changes<small>Notify administrators on updates</small></span><span /></div></div></Card><Card title="Data retention"><div className="admin-form"><label>System log retention<select defaultValue="90"><option value="90">90 days</option><option>180 days</option><option>365 days</option></select></label><label>Telemetry archive tier<select defaultValue="standard"><option value="standard">Standard archive</option><option>Extended archive</option></select></label></div></Card><Card title="Session controls"><div className="admin-list"><div><span>Session timeout<small>Automatically sign out inactive users</small></span><b>30 min</b></div><div><span>Administrator verification<small>Multi-factor verification is mandatory</small></span><b>Required</b></div></div></Card></div></>}
