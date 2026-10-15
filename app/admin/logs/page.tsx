@@ -1,12 +1,3 @@
-export default function Page() {
-  return (
-    <div>
-      <h1 style={{ fontSize: '3rem', fontWeight: 600, letterSpacing: '0.1em', color: '#F6F6F3', textShadow: '0 0 20px rgba(51,245,117,0.5)', marginBottom: '2rem' }}>
-        SYSTEM LOGS
-      </h1>
-      <p style={{ fontFamily: 'var(--font-body), sans-serif', color: 'rgba(246,246,243,.7)', fontSize: '14px' }}>
-        System monitoring interface active. Awaiting operator input...
-      </p>
-    </div>
-  );
-}
+import { Badge, Card, Header, Metric } from "../_components";
+const logs=[["09:44:18","INFO","Odyssey-07 telemetry package received"],["09:42:07","INFO","Navigation correction approved by Avery Chen"],["09:39:56","WARN","Europa relay latency exceeded baseline"],["09:35:11","INFO","Fleet diagnostics completed successfully"],["09:28:42","INFO","Security policy synchronization finished"]];
+export default function Page(){return <><Header title="System logs" description="A searchable stream of platform and mission events." action={<button className="admin-button secondary">Download logs</button>}/><div className="admin-grid metrics"><Metric label="EVENTS TODAY" value="12,482"/><Metric label="WARNINGS" value="14"/><Metric label="ERRORS" value="00"/><Metric label="RETENTION" value="90 days"/></div><Card title="Live event stream"><table className="admin-table"><thead><tr><th>TIME (UTC)</th><th>LEVEL</th><th>MESSAGE</th></tr></thead><tbody>{logs.map(l=><tr key={l[0]}><td>{l[0]}</td><td><Badge tone={l[1]==="WARN"?"warn":"good"}>{l[1]}</Badge></td><td>{l[2]}</td></tr>)}</tbody></table></Card></>}
