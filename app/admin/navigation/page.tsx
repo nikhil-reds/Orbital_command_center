@@ -1,12 +1,2 @@
-export default function Page() {
-  return (
-    <div>
-      <h1 style={{ fontSize: '3rem', fontWeight: 600, letterSpacing: '0.1em', color: '#F6F6F3', textShadow: '0 0 20px rgba(51,245,117,0.5)', marginBottom: '2rem' }}>
-        CELESTIAL NAVIGATION
-      </h1>
-      <p style={{ fontFamily: 'var(--font-body), sans-serif', color: 'rgba(246,246,243,.7)', fontSize: '14px' }}>
-        System monitoring interface active. Awaiting operator input...
-      </p>
-    </div>
-  );
-}
+import { Badge, Card, Header, Metric } from "../_components";
+export default function Page(){return <><Header title="Navigation" description="Trajectory planning and current route confidence." action={<button className="admin-button">Create route</button>}/><div className="admin-grid metrics"><Metric label="ACTIVE ROUTES" value="09"/><Metric label="ROUTE CONFIDENCE" value="98.4%" change="Within tolerance"/><Metric label="NEXT BURN" value="04:18" change="UTC"/><Metric label="TRACKING LOCKS" value="12 / 12"/></div><div className="admin-grid two"><Card title="Active route queue"><div className="admin-list"><div><span>Odyssey-07 → Europa orbit<small>Correction burn in 04:18</small></span><Badge tone="good">Locked</Badge></div><div><span>Pioneer-02 → Mars ingress<small>Confidence 94.1%</small></span><Badge tone="good">Approved</Badge></div><div><span>Atlas-09 → Lunar dock<small>Awaiting weather window</small></span><Badge tone="warn">Holding</Badge></div></div></Card><Card title="Navigation constraints"><div className="admin-list"><div><span>Solar interference<small>Low impact · 2 routes</small></span><b>08%</b></div><div><span>Debris avoidance<small>One minor course adjustment</small></span><b>01</b></div><div><span>GNSS uplink<small>All beacons synchronized</small></span><b>100%</b></div></div></Card></div></>}
