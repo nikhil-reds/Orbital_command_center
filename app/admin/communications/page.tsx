@@ -1,12 +1,2 @@
-export default function Page() {
-  return (
-    <div>
-      <h1 style={{ fontSize: '3rem', fontWeight: 600, letterSpacing: '0.1em', color: '#F6F6F3', textShadow: '0 0 20px rgba(51,245,117,0.5)', marginBottom: '2rem' }}>
-        DEEP SPACE COMMUNICATIONS
-      </h1>
-      <p style={{ fontFamily: 'var(--font-body), sans-serif', color: 'rgba(246,246,243,.7)', fontSize: '14px' }}>
-        System monitoring interface active. Awaiting operator input...
-      </p>
-    </div>
-  );
-}
+import { Badge, Card, Header, Metric } from "../_components";
+export default function Page(){return <><Header title="Communications" description="Relay health, secure channels, and transmission queue." action={<button className="admin-button">New transmission</button>}/><div className="admin-grid metrics"><Metric label="ACTIVE CHANNELS" value="18"/><Metric label="UPLINK QUALITY" value="99.96%"/><Metric label="QUEUED MESSAGES" value="07"/><Metric label="ENCRYPTED" value="100%"/></div><div className="admin-grid two"><Card title="Relay network"><div className="admin-list"><div><span>Earth primary array<small>18.2 GHz · latency 0.8 s</small></span><Badge tone="good">Online</Badge></div><div><span>Lunar relay E-4<small>7.4 GHz · latency 1.6 s</small></span><Badge tone="good">Online</Badge></div><div><span>Europa deep relay<small>Maintenance window in 42 min</small></span><Badge tone="warn">Monitor</Badge></div></div></Card><Card title="Transmission queue"><div className="admin-list"><div><span>Odyssey mission packet<small>Priority high · 4.2 MB</small></span><Badge>Sending</Badge></div><div><span>Fleet health digest<small>Priority normal · 1.1 MB</small></span><Badge>Queued</Badge></div><div><span>Navigation correction<small>Priority critical · 0.2 MB</small></span><Badge tone="good">Delivered</Badge></div></div></Card></div></>}
