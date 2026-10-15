@@ -34,20 +34,20 @@ const TO_API: Record<Status, ApiTask["status"]> = { pending: "PENDING", progress
 const fromApi = (t: ApiTask): Task => ({ id: t.id, tag: t.tag, tagColor: t.tagColor, title: t.title, note: t.note, progress: t.progress, status: TO_UI[t.status], people: t.assignees });
 
 const COLUMNS: { id: Status; title: string; dot: string; bar: string }[] = [
-  { id: "pending", title: "Pending", dot: "#6366f1", bar: "#6366f1" },
-  { id: "progress", title: "In Progress", dot: "#f59e0b", bar: "#f59e0b" },
-  { id: "review", title: "Review", dot: "#ef4444", bar: "#ef4444" },
-  { id: "completed", title: "Completed", dot: "#22c55e", bar: "#22c55e" },
+  { id: "pending", title: "Pending", dot: "#a1a1aa", bar: "#a1a1aa" },
+  { id: "progress", title: "In Progress", dot: "#52525b", bar: "#52525b" },
+  { id: "review", title: "Review", dot: "#27272a", bar: "#27272a" },
+  { id: "completed", title: "Completed", dot: "#18181b", bar: "#18181b" },
 ];
 
 const TAGS = {
-  purple: { bg: "#ede9fe", fg: "#6d28d9" },
-  orange: { bg: "#fef3c7", fg: "#b45309" },
-  pink: { bg: "#fce7f3", fg: "#be185d" },
-  green: { bg: "#dcfce7", fg: "#15803d" },
+  purple: { bg: "#f4f4f5", fg: "#27272a" },
+  orange: { bg: "#e4e4e7", fg: "#27272a" },
+  pink: { bg: "#d4d4d8", fg: "#27272a" },
+  green: { bg: "#27272a", fg: "#ffffff" },
 };
 
-const AVATARS = ["#f97316", "#8b5cf6", "#0ea5e9", "#ec4899"];
+const AVATARS = ["#27272a", "#52525b", "#71717a", "#a1a1aa"];
 
 export default function TodoPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -73,7 +73,10 @@ export default function TodoPage() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   const drop = async (status: Status) => {
     const id = dragId;
@@ -134,37 +137,34 @@ export default function TodoPage() {
   const total = tasks.length;
   const done = tasks.filter(t => t.status === "completed").length;
   const font = { fontFamily: "var(--font-body), sans-serif" };
-  const inputStyle = { ...font, background: "rgba(51,53,56,.6)", border: "1px solid rgba(11,218,81,.2)", color: "#F6F6F3" };
+  const inputStyle = { ...font, background: "#ffffff", border: "1px solid #d4d4d8", color: "#18181b" };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 todo-monochrome">
       {/* Header */}
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div className="flex flex-col gap-2">
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 600, letterSpacing: "0.1em", color: "#F6F6F3", textShadow: "0 0 20px rgba(51,245,117,0.45)", lineHeight: 1.1 }}>
-            TASK BOARD
-          </h1>
-          <p style={{ ...font, fontSize: 10, letterSpacing: "0.16em", color: "rgba(246,246,243,.6)" }}>
-            {done} OF {total} DIRECTIVES COMPLETED
-          </p>
+          <p style={{ ...font, fontSize: 10, letterSpacing: "0.16em", color: "#71717a", margin: 0 }}>ADMINISTRATION / WORK MANAGEMENT</p>
+          <h1 style={{ fontSize: "1.9rem", fontWeight: 600, letterSpacing: "-.04em", color: "#18181b", lineHeight: 1.1, margin: 0 }}>Task board</h1>
+          <p style={{ ...font, fontSize: 12, color: "#71717a", margin: 0 }}>{done} of {total} tasks completed</p>
         </div>
         <button
           onClick={() => setAdding(a => !a)}
-          className="px-4 py-2 rounded text-[10px] font-bold tracking-[0.18em] text-[#231F20] transition-all hover:shadow-[0_0_18px_rgba(11,218,81,0.7)]"
-          style={{ ...font, background: "linear-gradient(90deg,#0BDA51,#33F575)" }}
+          className="admin-button"
+          style={{ ...font }}
         >
           {adding ? "× CANCEL" : "+ NEW TASK"}
         </button>
       </header>
 
       {error && (
-        <div className="rounded px-4 py-2 text-xs" style={{ ...font, background: "rgba(211,39,53,.15)", border: "1px solid rgba(211,39,53,.4)", color: "#F3CED1" }}>
+        <div className="rounded px-4 py-2 text-xs" style={{ ...font, background: "#27272a", border: "1px solid #27272a", color: "#fff" }}>
           {error}
         </div>
       )}
 
       {adding && (
-        <form onSubmit={createTask} className="flex flex-wrap items-center gap-3 rounded-lg p-3" style={{ background: "rgba(35,31,32,.6)", border: "1px solid rgba(11,218,81,.2)" }}>
+        <form onSubmit={createTask} className="flex flex-wrap items-center gap-3 rounded-lg p-3" style={{ background: "#fff", border: "1px solid #e4e4e7" }}>
           <input autoFocus required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Task title" className="flex-1 min-w-[220px] px-3 py-2 rounded text-xs outline-none" style={inputStyle} />
           <input value={form.tag} onChange={e => setForm(f => ({ ...f, tag: e.target.value }))} placeholder="Tag (e.g. DESIGN)" className="w-36 px-3 py-2 rounded text-xs outline-none" style={inputStyle} />
           <select value={form.tagColor} onChange={e => setForm(f => ({ ...f, tagColor: e.target.value as TagColor }))} className="px-3 py-2 rounded text-xs outline-none" style={inputStyle}>
@@ -173,19 +173,19 @@ export default function TodoPage() {
           <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as Status }))} className="px-3 py-2 rounded text-xs outline-none" style={inputStyle}>
             {COLUMNS.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
           </select>
-          <button type="submit" className="px-4 py-2 rounded text-[10px] font-bold tracking-[0.18em] text-[#231F20]" style={{ ...font, background: "#0BDA51" }}>ADD</button>
+          <button type="submit" className="admin-button" style={{ ...font }}>ADD</button>
         </form>
       )}
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: "rgba(35,31,32,.6)", border: "1px solid rgba(11,218,81,.2)" }}>
+        <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: "#fff", border: "1px solid #e4e4e7" }}>
           {filters.map(f => (
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
               className="px-3 py-1.5 rounded-md text-[10px] font-semibold tracking-[0.12em] uppercase transition-all"
-              style={{ ...font, background: filter === f.id ? "#0BDA51" : "transparent", color: filter === f.id ? "#231F20" : "rgba(246,246,243,.7)" }}
+              style={{ ...font, background: filter === f.id ? "#18181b" : "transparent", color: filter === f.id ? "#fff" : "#71717a" }}
             >
               {f.label}
             </button>
@@ -195,8 +195,8 @@ export default function TodoPage() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search tasks..."
-          className="px-3 py-2 rounded-lg text-xs text-[#F6F6F3] outline-none focus:border-[#33F575] transition-colors"
-          style={{ ...font, width: 220, background: "rgba(35,31,32,.6)", border: "1px solid rgba(11,218,81,.2)" }}
+          className="px-3 py-2 rounded-lg text-xs outline-none transition-colors"
+          style={{ ...font, width: 220, background: "#fff", border: "1px solid #d4d4d8", color: "#18181b" }}
         />
       </div>
 
