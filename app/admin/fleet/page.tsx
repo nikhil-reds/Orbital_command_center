@@ -1,12 +1,3 @@
-export default function Page() {
-  return (
-    <div>
-      <h1 style={{ fontSize: '3rem', fontWeight: 600, letterSpacing: '0.1em', color: '#F6F6F3', textShadow: '0 0 20px rgba(51,245,117,0.5)', marginBottom: '2rem' }}>
-        FLEET STATUS & TRACKING
-      </h1>
-      <p style={{ fontFamily: 'var(--font-body), sans-serif', color: 'rgba(246,246,243,.7)', fontSize: '14px' }}>
-        System monitoring interface active. Awaiting operator input...
-      </p>
-    </div>
-  );
-}
+import { Badge, Bar, Card, Header, Metric } from "../_components";
+const craft=[["ODYSSEY-07","Outer orbit",98,"Nominal"],["AURORA-14","Lunar relay",91,"Nominal"],["PIONEER-02","Mars approach",76,"Monitor"],["ATLAS-09","Supply transfer",64,"Service due"]];
+export default function Page(){return <><Header title="Fleet status" description="Live readiness signals for all deployed vessels." action={<button className="admin-button secondary">Fleet map</button>}/><div className="admin-grid metrics"><Metric label="DEPLOYED VESSELS" value="24"/><Metric label="NOMINAL" value="19" change="79% of fleet"/><Metric label="IN TRANSIT" value="04"/><Metric label="MAINTENANCE" value="01"/></div><Card title="Vessel readiness"><table className="admin-table"><thead><tr><th>VESSEL</th><th>POSITION</th><th>READINESS</th><th>STATUS</th></tr></thead><tbody>{craft.map(c=><tr key={c[0]}><td><b>{c[0]}</b></td><td>{c[1]}</td><td style={{width:180}}><Bar value={Number(c[2])}/></td><td><Badge tone={c[3]==="Nominal"?"good":c[3]==="Monitor"?"warn":"bad"}>{c[3]}</Badge></td></tr>)}</tbody></table></Card></>}
