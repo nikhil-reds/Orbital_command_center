@@ -1,12 +1,2 @@
-export default function Page() {
-  return (
-    <div>
-      <h1 style={{ fontSize: '3rem', fontWeight: 600, letterSpacing: '0.1em', color: '#F6F6F3', textShadow: '0 0 20px rgba(51,245,117,0.5)', marginBottom: '2rem' }}>
-        DIAGNOSTICS & TELEMETRY
-      </h1>
-      <p style={{ fontFamily: 'var(--font-body), sans-serif', color: 'rgba(246,246,243,.7)', fontSize: '14px' }}>
-        System monitoring interface active. Awaiting operator input...
-      </p>
-    </div>
-  );
-}
+import { Bar, Card, Header, Metric } from "../_components";
+export default function Page(){return <><Header title="Diagnostics" description="Service performance, system capacity, and background jobs." action={<button className="admin-button">Run diagnostic</button>}/><div className="admin-grid metrics"><Metric label="SERVICE UPTIME" value="99.99%"/><Metric label="API LATENCY" value="82 ms"/><Metric label="CPU UTILIZATION" value="34%"/><Metric label="STORAGE USED" value="4.2 TB"/></div><div className="admin-grid two"><Card title="Infrastructure health"><div className="admin-list">{[["Command API",99],["Telemetry processor",94],["Mission database",86],["Archive storage",71]].map(([n,v])=><div key={String(n)}><span>{n}<small>All checks passing</small></span><span style={{width:150}}><Bar value={Number(v)}/><small>{v}% capacity</small></span></div>)}</div></Card><Card title="Background jobs"><div className="admin-list"><div><span>Telemetry aggregation<small>Runs every 30 seconds</small></span><b>Healthy</b></div><div><span>Report generation<small>Next run at 10:00 UTC</small></span><b>Queued</b></div><div><span>Archive verification<small>Last completed 6 min ago</small></span><b>Healthy</b></div></div></Card></div></>}
