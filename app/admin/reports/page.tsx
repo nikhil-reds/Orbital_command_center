@@ -1,12 +1,2 @@
-export default function Page() {
-  return (
-    <div>
-      <h1 style={{ fontSize: '3rem', fontWeight: 600, letterSpacing: '0.1em', color: '#F6F6F3', textShadow: '0 0 20px rgba(51,245,117,0.5)', marginBottom: '2rem' }}>
-        MISSION REPORTS
-      </h1>
-      <p style={{ fontFamily: 'var(--font-body), sans-serif', color: 'rgba(246,246,243,.7)', fontSize: '14px' }}>
-        System monitoring interface active. Awaiting operator input...
-      </p>
-    </div>
-  );
-}
+import { Card, Header, Metric } from "../_components";
+export default function Page(){return <><Header title="Mission reports" description="Scheduled reports and recent operational exports." action={<button className="admin-button">Create report</button>}/><div className="admin-grid metrics"><Metric label="REPORTS THIS MONTH" value="46"/><Metric label="SCHEDULED" value="08"/><Metric label="DRAFTS" value="03"/><Metric label="LAST EXPORT" value="09:30" change="UTC"/></div><div className="admin-grid two"><Card title="Mission performance"><div className="admin-chart">{[45,74,58,83,68,92,76,88,62,96,79,86].map((h,i)=><i key={i} style={{height:`${h}%`}}/>)}</div><div className="admin-kpi"><span>Completion trend</span><b>+12.4%</b></div></Card><Card title="Recent reports"><div className="admin-list"><div><span>Weekly fleet readiness<small>PDF · Generated today at 09:30</small></span><button className="admin-button secondary">Open</button></div><div><span>Odyssey-07 navigation audit<small>PDF · Generated yesterday</small></span><button className="admin-button secondary">Open</button></div><div><span>Quarterly security review<small>CSV · Generated 12 Oct</small></span><button className="admin-button secondary">Open</button></div></div></Card></div></>}
