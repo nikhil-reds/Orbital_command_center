@@ -1,12 +1,2 @@
-export default function Page() {
-  return (
-    <div>
-      <h1 style={{ fontSize: '3rem', fontWeight: 600, letterSpacing: '0.1em', color: '#F6F6F3', textShadow: '0 0 20px rgba(51,245,117,0.5)', marginBottom: '2rem' }}>
-        ADMINISTRATIVE OVERVIEW
-      </h1>
-      <p style={{ fontFamily: 'var(--font-body), sans-serif', color: 'rgba(246,246,243,.7)', fontSize: '14px' }}>
-        System monitoring interface active. Awaiting operator input...
-      </p>
-    </div>
-  );
-}
+import { Badge, Bar, Card, Header, Metric } from "./_components";
+export default function Page(){return <><Header title="Command overview" description="A concise view of your active mission operations." action={<button className="admin-button">Export briefing</button>}/><div className="admin-grid metrics"><Metric label="ACTIVE MISSIONS" value="12" change="+2 this week"/><Metric label="FLEET READINESS" value="94.8%" change="+1.2% today"/><Metric label="OPEN INCIDENTS" value="03" change="Requires review"/><Metric label="UPLINK HEALTH" value="99.96%" change="Stable"/></div><div className="admin-grid two" style={{marginTop:18}}><Card title="Mission readiness"><div className="admin-list">{[["Odyssey-07",98],["Aurora relay",91],["Pioneer survey",76],["Atlas supply",64]].map(([n,v])=><div key={String(n)}><span>{n}<small>Last update 4 min ago</small></span><span style={{width:130}}><Bar value={Number(v)}/><small>{v}% ready</small></span></div>)}</div></Card><Card title="Recent activity"><div className="admin-list"><div><span>Navigation route approved<small>Odyssey-07 · 09:42 UTC</small></span><Badge tone="good">Approved</Badge></div><div><span>Operator access request<small>Research division · 09:18 UTC</small></span><Badge tone="warn">Pending</Badge></div><div><span>Fleet diagnostic completed<small>All vessels · 08:55 UTC</small></span><Badge>Logged</Badge></div></div></Card></div></>}
