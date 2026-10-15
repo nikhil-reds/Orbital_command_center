@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Sora, Source_Sans_3 } from "next/font/google";
+import SolarSystemLoader from "./solar-system-loader";
 import "./globals.css";
 
 const sora = Sora({ subsets: ["latin"], variable: "--font-sora", display: "swap" });
@@ -16,8 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`h-full antialiased ${sora.variable} ${sourceSans.variable}`}>
       <body className="min-h-full flex flex-col">
         {children}
-        <Script src="https://unpkg.com/three@0.149.0/build/three.min.js" strategy="beforeInteractive" />
-        <Script src="/solar-system.js" strategy="beforeInteractive" />
+        <SolarSystemLoader />
       </body>
     </html>
   );
