@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { randomUUID } from "node:crypto";
+import { localDb } from "@/lib/local-db";
 import { hashPassword, setSessionCookie } from "@/lib/auth";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -16,14 +17,12 @@ export async function POST(req: Request) {
   if (password.length < 8) return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
   if (password.length > 128) return NextResponse.json({ error: "Password is too long" }, { status: 400 });
 
-  if (await prisma.user.findUnique({ where: { email } })) {
+  if (localDb.prepare("SELECT id FROM users WHERE email = ?").get(email)) {
     return NextResponse.json({ error: "An account with this email already exists" }, { status: 409 });
   }
 
-  const user = await prisma.user.create({
-    data: { name: name.slice(0, 80), email, password: await hashPassword(password) },
-    select: { id: true, email: true, name: true, role: true },
-  });
+  const user = { id: randomUUID(), name: name.slice(0, 80), email, role: "OPERATOR" };
+  localDb.prepare("INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)").run(user.id, user.name, user.email, await hashPassword(password), user.role);
   await setSessionCookie(user.id);
   return NextResponse.json(user, { status: 201 });
 }
