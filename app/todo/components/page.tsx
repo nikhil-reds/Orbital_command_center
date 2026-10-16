@@ -1,0 +1,2 @@
+import { TodoStaticPage } from "../static-page";
+export default function ComponentsPage() { return <TodoStaticPage title="Components" description="A UI inventory for the REDS workspace." cards={[{ title: "Navigation", detail: "Rail, sidebar, breadcrumbs, and status controls.", tone: "purple" }, { title: "Task cards", detail: "Reusable cards with assignees, labels, and progress.", tone: "blue" }, { title: "Feedback", detail: "Alerts, loading states, empty states, and notices.", tone: "amber" }]} />; }
