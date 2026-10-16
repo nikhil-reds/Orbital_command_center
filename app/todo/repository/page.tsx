@@ -1,0 +1,2 @@
+import { TodoStaticPage } from "../static-page";
+export default function RepositoryPage() { return <TodoStaticPage title="Repository" description="A UI overview of project source, branches, and releases." cards={[{ title: "Main branch", detail: "Latest workspace interface is ready for review.", tone: "green" }, { title: "Open branches", detail: "4 active feature branches are in progress.", tone: "purple" }, { title: "Release notes", detail: "Version 2.4 includes board and navigation updates.", tone: "blue" }]} />; }
