@@ -1,68 +1,27 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { TaskStatus } from "@/lib/generated/prisma/enums";
-import { noteFor, progressFor, STATUSES, TAG_COLORS } from "@/lib/tasks";
+import { localDb } from "@/lib/local-db";
+import { encodeAssignees, noteFor, progressFor, STATUSES, TAG_COLORS, taskForApi, type TaskStatus } from "@/lib/tasks";
 
 type Ctx = { params: Promise<{ id: string }> };
+type TaskRow = { id: string; title: string; tag: string; tagColor: string; note: string; progress: number; status: string; position: number; assignees: string; createdAt: string; updatedAt: string };
+const getTask = (id: string) => localDb.prepare("SELECT * FROM tasks WHERE id = ?").get(id) as TaskRow | undefined;
 
-export async function GET(_: Request, { params }: Ctx) {
-  const { id } = await params;
-  try {
-    const task = await prisma.task.findUnique({ where: { id } });
-    return task ? NextResponse.json(task) : NextResponse.json({ error: "Not found" }, { status: 404 });
-  } catch { return NextResponse.json({ error: "Task storage is unavailable" }, { status: 503 }); }
-}
+export async function GET(_: Request, { params }: Ctx) { const task = getTask((await params).id); return task ? NextResponse.json(taskForApi(task)) : NextResponse.json({ error: "Not found" }, { status: 404 }); }
 
-// PATCH /api/tasks/:id  { title?, tag?, tagColor?, assignees?, progress?, status?, position? }
-// Changing status (drag and drop) moves the task to the end of that column unless position is given.
 export async function PATCH(req: Request, { params }: Ctx) {
-  const { id } = await params;
+  const id = (await params).id;
   const body = await req.json().catch(() => null);
+  const current = getTask(id);
   if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
-  try {
-  const current = await prisma.task.findUnique({ where: { id } });
   if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  const data: Record<string, unknown> = {};
-  if (typeof body.title === "string" && body.title.trim()) data.title = body.title.trim();
-  if (typeof body.tag === "string" && body.tag.trim()) data.tag = body.tag.trim().toUpperCase().slice(0, 20);
-  if (TAG_COLORS.includes(body.tagColor)) data.tagColor = body.tagColor;
-  if (Array.isArray(body.assignees)) data.assignees = body.assignees.filter((a: unknown) => typeof a === "string").slice(0, 5);
-
-  let status: TaskStatus = current.status;
-  let progress = current.progress;
-  if (body.status !== undefined) {
-    if (!STATUSES.includes(body.status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
-    status = body.status;
-    if (status !== current.status) {
-      progress = progressFor(status, current.progress);
-      const last = await prisma.task.aggregate({ where: { status }, _max: { position: true } });
-      data.status = status;
-      data.position = (last._max.position ?? -1) + 1;
-    }
-  }
-  if (typeof body.progress === "number" && body.status === undefined) {
-    progress = Math.min(100, Math.max(0, Math.round(body.progress)));
-  }
-  if (typeof body.position === "number") data.position = Math.max(0, Math.round(body.position));
-  data.progress = progress;
-  data.note = noteFor(status, progress);
-
-  const task = await prisma.task.update({ where: { id }, data });
-  return NextResponse.json(task);
-  } catch { return NextResponse.json({ error: "Task storage is unavailable" }, { status: 503 }); }
+  if (body.status !== undefined && !STATUSES.includes(body.status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  const status = (body.status ?? current.status) as TaskStatus;
+  const progress = typeof body.progress === "number" ? Math.min(100, Math.max(0, Math.round(body.progress))) : status !== current.status ? progressFor(status, current.progress) : current.progress;
+  const position = typeof body.position === "number" ? Math.max(0, Math.round(body.position)) : status !== current.status ? (localDb.prepare("SELECT COALESCE(MAX(position), -1) AS value FROM tasks WHERE status = ?").get(status) as { value: number }).value + 1 : current.position;
+  const next = { title: typeof body.title === "string" && body.title.trim() ? body.title.trim() : current.title, tag: typeof body.tag === "string" && body.tag.trim() ? body.tag.trim().toUpperCase().slice(0, 20) : current.tag, tagColor: TAG_COLORS.includes(body.tagColor) ? body.tagColor : current.tagColor, assignees: Array.isArray(body.assignees) ? encodeAssignees(body.assignees.filter((item: unknown): item is string => typeof item === "string").slice(0, 5)) : current.assignees };
+  localDb.prepare("UPDATE tasks SET title=?, tag=?, tagColor=?, note=?, progress=?, status=?, position=?, assignees=?, updatedAt=? WHERE id=?").run(next.title, next.tag, next.tagColor, noteFor(status, progress), progress, status, position, next.assignees, new Date().toISOString(), id);
+  return NextResponse.json(taskForApi(getTask(id)!));
 }
 
 export const PUT = PATCH;
-
-export async function DELETE(_: Request, { params }: Ctx) {
-  const { id } = await params;
-  try {
-    const current = await prisma.task.findUnique({ where: { id }, select: { id: true } });
-    if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    await prisma.task.delete({ where: { id } });
-  } catch {
-    return NextResponse.json({ error: "Task storage is unavailable" }, { status: 503 });
-  }
-  return NextResponse.json({ ok: true });
-}
+export async function DELETE(_: Request, { params }: Ctx) { const id = (await params).id; if (!getTask(id)) return NextResponse.json({ error: "Not found" }, { status: 404 }); localDb.prepare("DELETE FROM tasks WHERE id = ?").run(id); return NextResponse.json({ ok: true }); }
