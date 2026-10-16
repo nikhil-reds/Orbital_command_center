@@ -7,43 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-}
-
-enum UserRole {
-  ADMIN
-  COMMANDER
-  PILOT
-  OPERATOR
-}
-
-enum MissionStatus {
-  PLANNED
-  ACTIVE
-  IN_TRANSIT
-  COMPLETED
-  ABORTED
-}
-
-enum VesselStatus {
-  DOCKED
-  IN_FLIGHT
-  MAINTENANCE
-  DECOMMISSIONED
-}
-
-enum TaskStatus {
-  PENDING
-  IN_PROGRESS
-  REVIEW
-  COMPLETED
-}
-
-enum LogLevel {
-  INFO
-  WARNING
-  ERROR
-  CRITICAL
+  provider = "sqlite"
 }
 
 model User {
@@ -51,7 +15,7 @@ model User {
   email     String   @unique
   name      String
   password  String
-  role      UserRole @default(OPERATOR)
+  role      String   @default("OPERATOR")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -95,7 +59,7 @@ model Mission {
   id              String        @id @default(uuid())
   code            String        @unique
   name            String
-  status          MissionStatus @default(ACTIVE)
+  status          String        @default("ACTIVE")
   distance        Float
   velocity        Float
   signalIntegrity Float
@@ -139,7 +103,7 @@ model FleetVessel {
   id          String       @id @default(uuid())
   name        String       @unique
   callsign    String       @unique
-  status      VesselStatus @default(IN_FLIGHT)
+  status      String       @default("IN_FLIGHT")
   coordinates String
   velocity    Float
   createdAt   DateTime     @default(now())
@@ -150,7 +114,7 @@ model FleetVessel {
 
 model LogEntry {
   id        String   @id @default(uuid())
-  level     LogLevel @default(INFO)
+  level     String   @default("INFO")
   message   String
   source    String
   userId    String?
@@ -167,9 +131,9 @@ model Task {
   tagColor  String     @default("purple")
   note      String     @default("")
   progress  Int        @default(0)
-  status    TaskStatus @default(PENDING)
+  status    String     @default("PENDING")
   position  Int        @default(0)
-  assignees String[]   @default([])
+  assignees String     @default("[]")
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
