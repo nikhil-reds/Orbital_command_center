@@ -1,0 +1,2 @@
+import { TodoStaticPage } from "../static-page";
+export default function ReportsPage() { return <TodoStaticPage title="Reports" description="A visual snapshot of delivery and team activity." cards={[{ title: "Completion rate", detail: "76% of this cycle's planned work is complete.", tone: "green" }, { title: "Flow time", detail: "Average task flow is 2.4 days this week.", tone: "blue" }, { title: "Review queue", detail: "3 tasks are waiting for a final decision.", tone: "amber" }]} />; }
