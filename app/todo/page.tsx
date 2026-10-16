@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { TodoWorkspaceFrame } from "./workspace-frame";
 
 type Status = "pending" | "progress" | "review" | "completed";
 type Filter = "all" | Status;
@@ -34,25 +35,35 @@ const TO_API: Record<Status, ApiTask["status"]> = { pending: "PENDING", progress
 const fromApi = (t: ApiTask): Task => ({ id: t.id, tag: t.tag, tagColor: t.tagColor, title: t.title, note: t.note, progress: t.progress, status: TO_UI[t.status], people: t.assignees });
 
 const COLUMNS: { id: Status; title: string; dot: string; bar: string }[] = [
-  { id: "pending", title: "Pending", dot: "#a1a1aa", bar: "#a1a1aa" },
-  { id: "progress", title: "In Progress", dot: "#52525b", bar: "#52525b" },
-  { id: "review", title: "Review", dot: "#27272a", bar: "#27272a" },
-  { id: "completed", title: "Completed", dot: "#18181b", bar: "#18181b" },
+  { id: "pending", title: "Pending", dot: "#8b5cf6", bar: "#8b5cf6" },
+  { id: "progress", title: "In Progress", dot: "#0ea5e9", bar: "#0ea5e9" },
+  { id: "review", title: "Review", dot: "#f59e0b", bar: "#f59e0b" },
+  { id: "completed", title: "Completed", dot: "#10b981", bar: "#10b981" },
 ];
 
 const TAGS = {
-  purple: { bg: "#f4f4f5", fg: "#27272a" },
-  orange: { bg: "#e4e4e7", fg: "#27272a" },
-  pink: { bg: "#d4d4d8", fg: "#27272a" },
-  green: { bg: "#27272a", fg: "#ffffff" },
+  purple: { bg: "#ede9fe", fg: "#6d28d9" },
+  orange: { bg: "#ffedd5", fg: "#c2410c" },
+  pink: { bg: "#fce7f3", fg: "#be185d" },
+  green: { bg: "#d1fae5", fg: "#047857" },
 };
 
 const AVATARS = ["#27272a", "#52525b", "#71717a", "#a1a1aa"];
+
+const DEMO_TASKS: Task[] = [
+  { id: "demo-1", tag: "DESIGN", tagColor: "purple", title: "Finalize the command-center dashboard layout", note: "Ready to start", progress: 0, status: "pending", people: ["AL", "MK"] },
+  { id: "demo-2", tag: "RESEARCH", tagColor: "pink", title: "Review navigation patterns for mission control", note: "Ready to start", progress: 0, status: "pending", people: ["RS"] },
+  { id: "demo-3", tag: "FRONTEND", tagColor: "orange", title: "Build responsive task board interactions", note: "65% completed", progress: 65, status: "progress", people: ["JD", "AL"] },
+  { id: "demo-4", tag: "API", tagColor: "orange", title: "Connect live mission telemetry feed", note: "40% completed", progress: 40, status: "progress", people: ["MK", "TJ"] },
+  { id: "demo-5", tag: "QA", tagColor: "pink", title: "Validate task flow across screen sizes", note: "Under review", progress: 90, status: "review", people: ["RS", "JD"] },
+  { id: "demo-6", tag: "CONTENT", tagColor: "green", title: "Publish operations quick-start guide", note: "Task finished", progress: 100, status: "completed", people: ["TJ", "AL"] },
+];
 
 export default function TodoPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [demoMode, setDemoMode] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [dragId, setDragId] = useState<string | null>(null);
@@ -67,7 +78,9 @@ export default function TodoPage() {
       setTasks(((await res.json()) as ApiTask[]).map(fromApi));
       setError(null);
     } catch {
-      setError("Could not load tasks");
+      setTasks(DEMO_TASKS);
+      setDemoMode(true);
+      setError("Showing demo tasks — local API is unavailable");
     } finally {
       setLoading(false);
     }
@@ -87,6 +100,7 @@ export default function TodoPage() {
 
     const prev = tasks;
     setTasks(p => p.map(t => (t.id === id ? { ...t, status } : t))); // optimistic
+    if (demoMode) return;
     try {
       const res = await fetch(`/api/tasks/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: TO_API[status] }) });
       if (!res.ok) throw new Error();
@@ -101,6 +115,12 @@ export default function TodoPage() {
   const createTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim()) return;
+    if (demoMode) {
+      setTasks(p => [...p, { id: `demo-${crypto.randomUUID()}`, title: form.title.trim(), tag: form.tag.trim().toUpperCase() || "GENERAL", tagColor: form.tagColor, status: form.status, progress: form.status === "completed" ? 100 : form.status === "review" ? 90 : form.status === "progress" ? 50 : 0, note: form.status === "completed" ? "Task finished" : form.status === "review" ? "Under review" : form.status === "progress" ? "50% completed" : "Ready to start", people: ["RC"] }]);
+      setForm({ title: "", tag: "", tagColor: "purple", status: "pending" });
+      setAdding(false);
+      return;
+    }
     try {
       const res = await fetch("/api/tasks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: form.title, tag: form.tag, tagColor: form.tagColor, status: TO_API[form.status] }) });
       if (!res.ok) throw new Error();
@@ -117,6 +137,7 @@ export default function TodoPage() {
   const removeTask = async (id: string) => {
     const prev = tasks;
     setTasks(p => p.filter(t => t.id !== id));
+    if (demoMode) return;
     try {
       const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error();
@@ -140,7 +161,8 @@ export default function TodoPage() {
   const inputStyle = { ...font, background: "#ffffff", border: "1px solid #d4d4d8", color: "#18181b" };
 
   return (
-    <div className="flex flex-col gap-6 todo-monochrome">
+    <TodoWorkspaceFrame onCreate={() => setAdding(true)}>
+        <div className="todo-page todo-monochrome flex flex-col gap-6">
       {/* Header */}
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div className="flex flex-col gap-2">
@@ -288,6 +310,7 @@ export default function TodoPage() {
           })}
         </div>
       </div>
-    </div>
+        </div>
+    </TodoWorkspaceFrame>
   );
 }
