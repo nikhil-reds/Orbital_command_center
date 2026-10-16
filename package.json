@@ -10,9 +10,11 @@
     "postinstall": "prisma generate && prisma skills sync || exit 0"
   },
   "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.10.1",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@types/three": "^0.186.0",
+    "better-sqlite3": "^13.0.3",
     "dotenv": "^18.0.5",
     "next": "16.3.0",
     "pg": "^8.23.1",
@@ -22,6 +24,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^20",
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
