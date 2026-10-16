@@ -60,7 +60,7 @@
   function earthTexture(THREE) {
     const c = cnv(1024, 512), x = c.getContext('2d');
     const g = x.createLinearGradient(0, 0, 0, 512);
-    g.addColorStop(0, '#04531F'); g.addColorStop(.5, '#0e4a86'); g.addColorStop(1, '#04531F');
+    g.addColorStop(0, '#4F46E5'); g.addColorStop(.5, '#2563EB'); g.addColorStop(1, '#4F46E5');
     x.fillStyle = g; x.fillRect(0, 0, 1024, 512);
     const land = ['#1f5e33', '#2c7040', '#4e6b34', '#6b6136', '#37613a'];
     const blob = (cx, cy, s) => {
@@ -171,8 +171,8 @@
       this.style.display = 'block'; this.style.position = 'relative'; this.style.width = '100%'; this.style.height = '100%';
       this.tip = document.createElement('div');
       this.tip.style.cssText = 'position:absolute;pointer-events:none;opacity:0;transition:opacity .25s ease;transform:translate(14px,-50%);' +
-        'padding:9px 12px;border:1px solid rgba(11,218,81,.3);border-left:1px solid rgba(51,245,117,.85);background:rgba(41,41,41,.72);' +
-        'backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 0 30px rgba(4,83,31,.4);' +
+        'padding:9px 12px;border:1px solid rgba(99,91,255,.3);border-left:1px solid rgba(59,130,246,.85);background:rgba(41,41,41,.72);' +
+        'backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 0 30px rgba(79,70,229,.4);' +
         "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;color:rgba(246,246,243,.62);white-space:nowrap;z-index:3;";
       this.appendChild(this.tip);
       this.boot();
@@ -424,7 +424,7 @@
         if (name) {
           const d = DATA.find(x => x.name === name);
           this.tip.innerHTML = '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:11.5px;letter-spacing:.24em;color:#F6F6F3;margin-bottom:5px">' + d.name + '</div>' +
-            'PLANET ' + d.idx + ' · ' + d.type + '<br>DIST ' + d.au + ' · MOONS ' + d.moons.length + '<br><span style="color:#64F796">STATUS TRACKING</span>';
+            'PLANET ' + d.idx + ' · ' + d.type + '<br>DIST ' + d.au + ' · MOONS ' + d.moons.length + '<br><span style="color:#A5B4FC">STATUS TRACKING</span>';
         }
         this.tip.style.opacity = name ? '1' : '0';
       }
