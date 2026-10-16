@@ -1,2 +1,9 @@
-import AdminLayout from "../admin/layout";
-export default function TodoLayout({ children }: { children: React.ReactNode }) { return <AdminLayout>{children}</AdminLayout>; }
+import "./todo.css";
+
+export default function TodoLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return <>{children}</>;
+}
