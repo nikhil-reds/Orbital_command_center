@@ -1,0 +1,2 @@
+import { TodoStaticPage } from "../static-page";
+export default function IssuesPage() { return <TodoStaticPage title="Issues" description="Track open blockers, bugs, and operational follow-ups." cards={[{ title: "High priority", detail: "2 issues need attention before the next release.", tone: "amber" }, { title: "In triage", detail: "5 new reports are waiting to be categorised.", tone: "purple" }, { title: "Resolved", detail: "14 issues have been closed in the current cycle.", tone: "green" }]} />; }
