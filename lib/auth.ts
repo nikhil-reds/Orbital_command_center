@@ -1,7 +1,7 @@
 import { createHmac, randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
+import { localDb } from "@/lib/local-db";
 
 const scrypt = promisify(scryptCb) as (pw: string, salt: Buffer, len: number) => Promise<Buffer>;
 
@@ -72,5 +72,5 @@ export async function clearSessionCookie() {
 export async function getCurrentUser() {
   const userId = readSessionToken((await cookies()).get(SESSION_COOKIE)?.value);
   if (!userId) return null;
-  return prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true, name: true, role: true } });
+  return localDb.prepare("SELECT id, email, name, role FROM users WHERE id = ?").get(userId) as { id: string; email: string; name: string; role: string } | undefined ?? null;
 }
