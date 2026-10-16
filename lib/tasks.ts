@@ -1,6 +1,5 @@
-import { TaskStatus } from "@/lib/generated/prisma/enums";
-
-export const STATUSES = Object.values(TaskStatus) as TaskStatus[];
+export const STATUSES = ["PENDING", "IN_PROGRESS", "REVIEW", "COMPLETED"] as const;
+export type TaskStatus = (typeof STATUSES)[number];
 
 export const TAG_COLORS = ["purple", "orange", "pink", "green"] as const;
 
@@ -35,3 +34,15 @@ export const SEED_TASKS: {
   { tag: "USER PERSONAS", tagColor: "green", title: "Create Personas for all type of users on the base of research data", status: "COMPLETED", progress: 100, assignees: ["JD", "TJ", "AL"] },
   { tag: "USER STORIES", tagColor: "green", title: "Create User Stories for admin, and for user web and android platform", status: "COMPLETED", progress: 100, assignees: ["RS", "MK"] },
 ];
+
+export function encodeAssignees(assignees: string[]) { return JSON.stringify(assignees); }
+export function decodeAssignees(value: string) {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
+  } catch { return []; }
+}
+
+export function taskForApi<T extends { assignees: string }>(task: T) {
+  return { ...task, assignees: decodeAssignees(task.assignees) };
+}
