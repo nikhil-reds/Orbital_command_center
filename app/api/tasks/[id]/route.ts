@@ -7,8 +7,10 @@ type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(_: Request, { params }: Ctx) {
   const { id } = await params;
-  const task = await prisma.task.findUnique({ where: { id } });
-  return task ? NextResponse.json(task) : NextResponse.json({ error: "Not found" }, { status: 404 });
+  try {
+    const task = await prisma.task.findUnique({ where: { id } });
+    return task ? NextResponse.json(task) : NextResponse.json({ error: "Not found" }, { status: 404 });
+  } catch { return NextResponse.json({ error: "Task storage is unavailable" }, { status: 503 }); }
 }
 
 // PATCH /api/tasks/:id  { title?, tag?, tagColor?, assignees?, progress?, status?, position? }
@@ -17,7 +19,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const { id } = await params;
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
-
+  try {
   const current = await prisma.task.findUnique({ where: { id } });
   if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
@@ -48,14 +50,19 @@ export async function PATCH(req: Request, { params }: Ctx) {
 
   const task = await prisma.task.update({ where: { id }, data });
   return NextResponse.json(task);
+  } catch { return NextResponse.json({ error: "Task storage is unavailable" }, { status: 503 }); }
 }
+
+export const PUT = PATCH;
 
 export async function DELETE(_: Request, { params }: Ctx) {
   const { id } = await params;
   try {
+    const current = await prisma.task.findUnique({ where: { id }, select: { id: true } });
+    if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 });
     await prisma.task.delete({ where: { id } });
   } catch {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "Task storage is unavailable" }, { status: 503 });
   }
   return NextResponse.json({ ok: true });
 }
