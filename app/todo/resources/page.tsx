@@ -1,0 +1,2 @@
+import { TodoStaticPage } from "../static-page";
+export default function ResourcesPage() { return <TodoStaticPage title="Resources" description="Quick access to workspace references and team materials." cards={[{ title: "Brand kit", detail: "Logos, colors, typography, and product graphics.", tone: "purple" }, { title: "Project brief", detail: "Current scope, milestones, and acceptance criteria.", tone: "blue" }, { title: "Team handbook", detail: "Ways of working and communication guidance.", tone: "green" }]} />; }
