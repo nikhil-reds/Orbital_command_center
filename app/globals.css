@@ -2,6 +2,8 @@
 
 /* REDS brand tokens (REDS Brand Book R2) */
 :root {
+  --font-sora: "Arial", "Helvetica", sans-serif;
+  --font-body: "Arial", "Helvetica", sans-serif;
   /* Core */
   --reds-green: #635BFF;
   --reds-ink: #231F20;
