@@ -9,7 +9,6 @@ export default function SignUp() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,10 +17,6 @@ export default function SignUp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (password !== confirmPassword) {
-      setError("Codes do not match.");
-      return;
-    }
     setLoading(true);
     try {
       const res = await fetch("/api/auth/signup", {
@@ -104,19 +99,6 @@ export default function SignUp() {
                 style={{ fontFamily: 'var(--font-body), sans-serif', fontSize: '12px', letterSpacing: '.1em' }}
               />
             </div>
-
-            <div className="flex flex-col gap-2">
-              <label style={{ fontFamily: 'var(--font-body), sans-serif', fontSize: '10px', letterSpacing: '.2em', color: 'rgba(246,246,243,.6)' }}>VERIFY CODE</label>
-              <input 
-                type="password" 
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className="w-full bg-[rgba(41,41,41,.8)] border border-[rgba(11,218,81,.2)] rounded p-3 text-[#F6F6F3] focus:outline-none focus:border-[#33F575] focus:shadow-[0_0_15px_rgba(11,218,81,.3)] transition-all"
-                style={{ fontFamily: 'var(--font-body), sans-serif', fontSize: '12px', letterSpacing: '.1em' }}
-              />
-            </div>
-
             <button 
               type="submit"
               disabled={loading}
